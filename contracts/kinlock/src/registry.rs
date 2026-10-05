@@ -27,6 +27,9 @@ pub fn register_payee(
     if storage::read_payee(env, payee_id).is_some() {
         return Err(Error::PayeeAlreadyExists);
     }
+    if *payout == env.current_contract_address() {
+        return Err(Error::InvalidPayout);
+    }
 
     let now = env.ledger().timestamp();
     let payee = Payee {
@@ -121,6 +124,9 @@ pub fn update_payout(
     }
     if *new_payout == payee.payout {
         return Err(Error::PayoutUnchanged);
+    }
+    if *new_payout == env.current_contract_address() {
+        return Err(Error::InvalidPayout);
     }
 
     payee.payout = new_payout.clone();

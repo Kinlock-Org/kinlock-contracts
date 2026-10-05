@@ -2,7 +2,8 @@
 //! by the wrong address fails. `mock_all_auths` alone would hide a missing `require_auth`.
 //! Row: M1-12.
 
-use super::Setup;
+use super::{Setup, DAY, T0};
+use crate::constants::MIN_AMOUNT;
 use crate::types::{Category, PayeeStatus};
 use soroban_sdk::testutils::{
     Address as _, AuthorizedFunction, AuthorizedInvocation, MockAuth, MockAuthInvoke,
@@ -59,12 +60,12 @@ fn admin_functions_require_admin() {
         (true,).into_val(&s.env),
     );
 
-    s.client.set_caps(&10, &20);
+    s.client.set_caps(&MIN_AMOUNT, &(2 * MIN_AMOUNT));
     assert_single_auth(
         &s,
         &s.admin,
         "set_caps",
-        (10_i128, 20_i128).into_val(&s.env),
+        (MIN_AMOUNT, 2 * MIN_AMOUNT).into_val(&s.env),
     );
 }
 
@@ -185,7 +186,10 @@ fn admin_functions_with_no_signature_fail() {
         s.client.try_set_paused_new_locks(&true),
         Err(Err(_))
     ));
-    assert!(matches!(s.client.try_set_caps(&1, &1), Err(Err(_))));
+    assert!(matches!(
+        s.client.try_set_caps(&MIN_AMOUNT, &MIN_AMOUNT),
+        Err(Err(_))
+    ));
 
     assert!(!s.is_attester(&other));
     assert!(s.is_attester(&attester));
@@ -288,4 +292,156 @@ fn update_payout_signed_by_someone_else_fails() {
         .try_update_payout(&attester, &payee_id, &intruder);
     assert!(matches!(result, Err(Err(_))));
     assert_eq!(s.client.get_payee(&payee_id).payout, payout);
+}
+
+// ----- Vault -----
+
+#[test]
+fn create_lock_requires_sender_including_the_token_transfer() {
+    let s = Setup::new();
+    let attester = s.new_attester();
+    let (payee_id, _) = s.register_payee(&attester, 1);
+    let token = s.new_token();
+    let sender = Address::generate(&s.env);
+    s.mint(&token, &sender, MIN_AMOUNT);
+    let tranches = s.tranches(&[(MIN_AMOUNT, T0 + DAY)]);
+    let expires_at = T0 + 10 * DAY;
+    s.client.create_lock(
+        &sender,
+        &token,
+        &payee_id,
+        &tranches,
+        &s.ref_hash(),
+        &expires_at,
+    );
+    assert_eq!(
+        s.env.auths(),
+        std::vec![(
+            sender.clone(),
+            AuthorizedInvocation {
+                function: AuthorizedFunction::Contract((
+                    s.client.address.clone(),
+                    Symbol::new(&s.env, "create_lock"),
+                    (
+                        sender.clone(),
+                        token.clone(),
+                        payee_id,
+                        tranches,
+                        s.ref_hash(),
+                        expires_at
+                    )
+                        .into_val(&s.env),
+                )),
+                sub_invocations: std::vec![AuthorizedInvocation {
+                    function: AuthorizedFunction::Contract((
+                        token.clone(),
+                        Symbol::new(&s.env, "transfer"),
+                        (sender.clone(), s.client.address.clone(), MIN_AMOUNT).into_val(&s.env),
+                    )),
+                    sub_invocations: std::vec![],
+                }],
+            }
+        )]
+    );
+}
+
+#[test]
+fn release_and_decline_require_the_lock_payout() {
+    let s = Setup::new();
+    let f = s.standard_lock();
+    s.set_time(T0 + DAY);
+    s.client.release(&f.id, &0);
+    assert_single_auth(&s, &f.payout, "release", (f.id, 0_u32).into_val(&s.env));
+    s.client.decline(&f.id);
+    assert_single_auth(&s, &f.payout, "decline", (f.id,).into_val(&s.env));
+}
+
+#[test]
+fn refund_requires_the_lock_sender() {
+    let s = Setup::new();
+    let f = s.standard_lock();
+    s.set_time(T0 + 10 * DAY);
+    s.client.refund(&f.id);
+    assert_single_auth(&s, &f.sender, "refund", (f.id,).into_val(&s.env));
+}
+
+/// Signs `fn_name(args)` as `signer` only, then runs `call`; returns whether it failed with
+/// a host (auth) error.
+fn fails_when_signed_by(
+    s: &Setup,
+    signer: &Address,
+    fn_name: &str,
+    args: Vec<Val>,
+    call: impl FnOnce(&crate::KinlockClient<'static>) -> bool,
+) -> bool {
+    let invoke = MockAuthInvoke {
+        contract: &s.client.address,
+        fn_name,
+        args,
+        sub_invokes: &[],
+    };
+    s.env.mock_auths(&[MockAuth {
+        address: signer,
+        invoke: &invoke,
+    }]);
+    call(&s.client)
+}
+
+#[test]
+fn vault_calls_signed_by_the_wrong_party_fail() {
+    let s = Setup::new();
+    let f = s.standard_lock();
+    let intruder = Address::generate(&s.env);
+    s.set_time(T0 + DAY);
+
+    // The sender can't release or decline; only the payout address can.
+    assert!(fails_when_signed_by(
+        &s,
+        &f.sender,
+        "release",
+        (f.id, 0_u32).into_val(&s.env),
+        |c| matches!(c.try_release(&f.id, &0), Err(Err(_)))
+    ));
+    assert!(fails_when_signed_by(
+        &s,
+        &f.sender,
+        "decline",
+        (f.id,).into_val(&s.env),
+        |c| matches!(c.try_decline(&f.id), Err(Err(_)))
+    ));
+    // Nor can an unrelated address.
+    assert!(fails_when_signed_by(
+        &s,
+        &intruder,
+        "release",
+        (f.id, 0_u32).into_val(&s.env),
+        |c| matches!(c.try_release(&f.id, &0), Err(Err(_)))
+    ));
+    assert!(fails_when_signed_by(
+        &s,
+        &intruder,
+        "decline",
+        (f.id,).into_val(&s.env),
+        |c| matches!(c.try_decline(&f.id), Err(Err(_)))
+    ));
+    // The payee can't refund; only the sender can.
+    s.set_time(T0 + 10 * DAY);
+    assert!(fails_when_signed_by(
+        &s,
+        &f.payout,
+        "refund",
+        (f.id,).into_val(&s.env),
+        |c| matches!(c.try_refund(&f.id), Err(Err(_)))
+    ));
+    assert!(fails_when_signed_by(
+        &s,
+        &intruder,
+        "refund",
+        (f.id,).into_val(&s.env),
+        |c| matches!(c.try_refund(&f.id), Err(Err(_)))
+    ));
+    let lock = s.lock(f.id);
+    assert_eq!(lock.released, 0);
+    assert_eq!(lock.returned, 0);
+    assert_eq!(s.balance(&f.token, &s.client.address), 3 * MIN_AMOUNT);
 }

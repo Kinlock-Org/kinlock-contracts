@@ -20,6 +20,7 @@ pub enum Error {
     InvalidStatusTransition = 13,
     PayoutUnchanged = 14,
     PayeeRevoked = 15,
+    InvalidPayout = 16,
     // create_lock validation
     PausedNewLocks = 20,
     TokenNotAllowed = 21,
@@ -34,6 +35,7 @@ pub enum Error {
     ExpiryTooSoon = 30,
     ExpiryTooFar = 31,
     SenderIsPayout = 32,
+    LockTtlTooLong = 33,
     // Lock actions
     LockNotFound = 40,
     LockNotOpen = 41,

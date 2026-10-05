@@ -32,3 +32,7 @@ pub const TTL_REFRESH_WINDOW_SECS: u64 = 24 * 60 * 60;
 /// Version stamped on every event. Bump when any event's shape changes; the indexer must
 /// handle every version ever emitted.
 pub const EVENT_SCHEMA_VERSION: u32 = 1;
+
+/// Layout version of contract storage, written at deploy. An upgrade that changes the stored
+/// layout must bump this and migrate (ARCHITECTURE.md §4.7).
+pub const STORAGE_VERSION: u32 = 1;

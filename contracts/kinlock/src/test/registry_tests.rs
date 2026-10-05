@@ -366,3 +366,36 @@ fn update_payout_emits_event() {
         [expected.to_xdr(&s.env, &s.client.address)]
     );
 }
+
+// ----- payout can't be the contract itself -----
+
+#[test]
+fn register_payee_rejects_contract_as_payout() {
+    let s = Setup::new();
+    let attester = s.new_attester();
+    let payee_id = BytesN::from_array(&s.env, &[1; 32]);
+    let meta_hash = BytesN::from_array(&s.env, &[2; 32]);
+    assert_eq!(
+        s.client.try_register_payee(
+            &attester,
+            &payee_id,
+            &s.client.address,
+            &Category::School,
+            &meta_hash
+        ),
+        Err(Ok(Error::InvalidPayout))
+    );
+}
+
+#[test]
+fn update_payout_rejects_contract_as_payout() {
+    let s = Setup::new();
+    let attester = s.new_attester();
+    let (payee_id, payout) = s.register_payee(&attester, 1);
+    assert_eq!(
+        s.client
+            .try_update_payout(&attester, &payee_id, &s.client.address),
+        Err(Ok(Error::InvalidPayout))
+    );
+    assert_eq!(s.client.get_payee(&payee_id).payout, payout);
+}

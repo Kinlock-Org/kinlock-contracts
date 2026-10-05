@@ -8,9 +8,8 @@
 //! country, currency, or locale. Those live in `kinlock-registry` data only.
 //!
 //! This file is the only `#[contractimpl]`: entry points delegate to their modules.
-//! Vault entry points are specified in `vault.rs` and land in M1-05..M1-09.
 
-use soroban_sdk::{contract, contractimpl, Address, BytesN, Env};
+use soroban_sdk::{contract, contractimpl, Address, BytesN, Env, Vec};
 
 pub mod admin;
 pub mod constants;
@@ -22,7 +21,7 @@ pub mod types;
 pub mod vault;
 
 use errors::Error;
-use types::{Category, Payee, PayeeStatus};
+use types::{Category, Lock, Payee, PayeeStatus, TrancheInput};
 
 #[contract]
 pub struct Kinlock;
@@ -97,6 +96,42 @@ impl Kinlock {
 
     pub fn get_payee(env: Env, payee_id: BytesN<32>) -> Result<Payee, Error> {
         registry::get_payee(&env, &payee_id)
+    }
+
+    // ----- Vault -----
+
+    pub fn create_lock(
+        env: Env,
+        sender: Address,
+        token: Address,
+        payee_id: BytesN<32>,
+        tranches: Vec<TrancheInput>,
+        ref_hash: BytesN<32>,
+        expires_at: u64,
+    ) -> Result<u64, Error> {
+        vault::create_lock(
+            &env, &sender, &token, &payee_id, &tranches, &ref_hash, expires_at,
+        )
+    }
+
+    pub fn release(env: Env, lock_id: u64, idx: u32) -> Result<(), Error> {
+        vault::release(&env, lock_id, idx)
+    }
+
+    pub fn refund(env: Env, lock_id: u64) -> Result<(), Error> {
+        vault::refund(&env, lock_id)
+    }
+
+    pub fn decline(env: Env, lock_id: u64) -> Result<(), Error> {
+        vault::decline(&env, lock_id)
+    }
+
+    pub fn bump_lock(env: Env, lock_id: u64) -> Result<(), Error> {
+        vault::bump_lock(&env, lock_id)
+    }
+
+    pub fn get_lock(env: Env, lock_id: u64) -> Result<Lock, Error> {
+        vault::get_lock(&env, lock_id)
     }
 }
 
