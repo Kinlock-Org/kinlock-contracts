@@ -24,6 +24,11 @@ pub const TTL_GRACE_SECS: u64 = 30 * 24 * 60 * 60;
 /// Unverified: confirm against current network settings in M0-08.
 pub const APPROX_LEDGER_CLOSE_SECS: u64 = 5;
 
+/// Long-lived entries (config, attesters, tokens, payees) are extended to the network's
+/// max TTL, but only once their remaining TTL has dropped this far below it. Bounds the
+/// cost of keeping them alive to roughly one extension per day per entry.
+pub const TTL_REFRESH_WINDOW_SECS: u64 = 24 * 60 * 60;
+
 /// Version stamped on every event. Bump when any event's shape changes; the indexer must
 /// handle every version ever emitted.
 pub const EVENT_SCHEMA_VERSION: u32 = 1;

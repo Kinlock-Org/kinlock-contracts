@@ -12,11 +12,14 @@ pub enum Error {
     NotInitialized = 2,
     NotAttester = 3,
     NotVouchingAttester = 4,
+    InvalidCap = 5,
     // Registry
     PayeeAlreadyExists = 10,
     PayeeNotFound = 11,
     PayeeNotActive = 12,
     InvalidStatusTransition = 13,
+    PayoutUnchanged = 14,
+    PayeeRevoked = 15,
     // create_lock validation
     PausedNewLocks = 20,
     TokenNotAllowed = 21,

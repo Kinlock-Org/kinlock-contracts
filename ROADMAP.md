@@ -129,7 +129,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 7 | 4 | 8 | 0 | 0 | 0 | 37% |
 | 1 M0 Validate | 17 | 0 | 0 | 17 | 0 | 0 | 0 | 0% |
-| 2 Contract + registry | 30 | 0 | 4 | 26 | 0 | 0 | 0 | 0% |
+| 2 Contract + registry | 32 | 0 | 7 | 25 | 0 | 0 | 0 | 0% |
 | 3 SDK + indexer | 19 | 0 | 2 | 17 | 0 | 0 | 0 | 0% |
 | 4 App | 24 | 0 | 2 | 22 | 0 | 0 | 0 | 0% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 8 | 0 | 1 | 7 | 0 | 0 | 0 | 0% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **193** | **7** | **13** | **148** | **0** | **25** | **0** | **4%** |
+| **All** | **195** | **7** | **16** | **147** | **0** | **25** | **0** | **4%** |
 
 ---
 
@@ -212,8 +212,8 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|
 | M1-01 | Scaffold workspace: Cargo workspace, `rust-toolchain.toml`, empty modules, CI (fmt, clippy, test, build), `localnet.sh` | contracts | P0 | IN PROGRESS | G1 | CI green on empty skeleton; one-command local network |
 | M1-02 | Implement `constants.rs`, `types.rs`, `errors.rs`, `events.rs`, `storage.rs` | contracts | P0 | IN PROGRESS | M1-01 | Match `ARCHITECTURE.md` §4; enums append-only; events carry `schema_version` |
-| M1-03 | Admin functions: `init`, attester add/remove, token add/remove, `set_paused_new_locks`, `set_caps`, `upgrade` | contracts | P0 | TODO | M1-02 | Auth tested; pause blocks only `create_lock` |
-| M1-04 | Registry: `register_payee`, `set_status`, `update_payout` | contracts | P0 | TODO | M1-02 | Status transitions enforced; payout update affects new locks only |
+| M1-03 | Admin functions: `init`, attester add/remove, token add/remove, `set_paused_new_locks`, `set_caps`, `upgrade` | contracts | P0 | IN PROGRESS | M1-02 | Auth tested; pause blocks only `create_lock` |
+| M1-04 | Registry: `register_payee`, `set_status`, `update_payout` | contracts | P0 | IN PROGRESS | M1-02 | Status transitions enforced; payout update affects new locks only |
 | M1-05 | Vault: `create_lock` with all validations (token, payee Active, min/max, ≤12 tranches, `unlock_at ≤ expires_at`, max duration, `sender ≠ payout`, caps) | contracts | P0 | TODO | M1-04 | Each validation has a failing test |
 | M1-06 | Vault: `release` (payee only; `unlock_at ≤ now < expires_at`; state before transfer) | contracts | P0 | TODO | M1-05 | Boundary tests pass |
 | M1-07 | Vault: `refund` (expired, Revoked, Suspended past grace) | contracts | P0 | TODO | M1-05 | All three paths and rejections tested |
@@ -221,7 +221,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-09 | `bump_lock` and TTL policy on create and on terminal states | contracts | P0 | TODO | M1-05, M0-08 | TTL ≥ `expires_at + TTL_GRACE`; permissionless bump tested |
 | M1-10 | `total_locked` bookkeeping and cap enforcement | contracts | P1 | TODO | M1-05 | Invariant 9 holds under property tests |
 | M1-11 | Unit tests for every entry point (success and each failure) | contracts | P0 | TODO | M1-03..M1-09 | Coverage of every error variant |
-| M1-12 | Explicit-auth tests (not only `mock_all_auths`) | contracts | P0 | TODO | M1-11 | Every privileged function asserts `env.auths()` |
+| M1-12 | Explicit-auth tests (not only `mock_all_auths`) | contracts | P0 | IN PROGRESS | M1-11 | Every privileged function asserts `env.auths()` |
 | M1-13 | Boundary tests: `now == unlock_at`, `expires_at - 1`, `expires_at` | contracts | P0 | TODO | M1-06, M1-07 | Pass |
 | M1-14 | Property tests for invariants 1–10 | contracts | P0 | TODO | M1-11 | `proptest` sequences green over many runs |
 | M1-15 | Integration tests: C-address sender and payee, missing/unauthorized trustline, partial release then refund/decline, allowlist removal with open locks | contracts | P0 | TODO | M1-11 | Pass on local network |
@@ -234,6 +234,8 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-22 | Internal review using the `CLAUDE.md` contract checklist; fix findings | contracts | P0 | TODO | M1-16 | Checklist completed with evidence |
 | M1-23 | Decide optional `refund_to` (ADR) | contracts | P2 | TODO | M1-05 | ADR accepted or declined |
 | M1-30 | Source `soroban-budget-assert` (not published on crates.io) or choose an alternative for budget tests | contracts | P0 | TODO | — | Crate usable from CI; `M1-16` can start |
+| M1-31 | Finish M1-03/M1-04 "Done when" once locks exist: tests that pause and token removal block only `create_lock`, and that `update_payout` leaves existing locks' payout unchanged | contracts | P0 | TODO | M1-05 | Tests pass; M1-03 and M1-04 can be marked `DONE` |
+| M1-32 | Upgrade auth and success test with a real uploaded WASM (an unknown hash also fails, so today's test can't isolate auth) | contracts | P0 | TODO | M1-17 | Upgrade signed by admin succeeds and asserts `env.auths()`; intruder-signed upgrade fails |
 
 ### 6.2 `kinlock-registry`
 
@@ -517,6 +519,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-10-05 | `feat/admin-registry` | contracts | IN PROGRESS: M1-03, M1-04, M1-12 (M1-02 stays IN PROGRESS). Added: M1-31, M1-32 | Admin functions (constructor replaces `init`), payee registry (`register_payee`, `set_status`, `update_payout`, `get_payee`), TTL extension for long-lived entries, new errors `InvalidCap`, `PayoutUnchanged`, `PayeeRevoked`; 42 unit, auth, event, and TTL tests; independent review findings addressed. Started ahead of G1 at the owner's request |
 | 2026-10-05 | scaffold (requested by owner; branch `chore/scaffold` in each repo, uncommitted) | all | IN PROGRESS: F-09, F-14, F-15, F-17, W-03, M1-01, M1-02, M1-24, M1-29, M2-01, M2-11, M3-01, M3-23. Added: F-19, M1-30, DEC-22, DEC-23 | Scaffolded org `.github` (docs, 16 ADRs + proposed ADR-0017, templates, `sync-docs.sh`, `roadmap-progress`) and the contracts, registry, sdk, and app repos with data models and stubs. Done ahead of G1 at the owner's request. `kinlock-ramp` left untouched (conditional). Counts refreshed with `scripts/roadmap-progress` |
 | 2026-10-05 | scope change (requested by owner) | org | Edited: M0-01, M0-02, M0-05, M0-07, M1-27, M3-06, M3-16, H-11, D-03, D-14, DEC-10, DEC-11, §1 items 5 and 9. Added: M0-16, M0-17, M1-29, M2-19, M3-23, M3-24, H-25, H-26, P-07, L-08, D-16, DEC-19..21 | Product generalized from "abroad to Nigeria" to worldwide (market-by-market launch). Docs bumped to v0.3; country-agnostic-core rule added to `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE_ESSENTIALS.md`. §1 edited with the owner's approval |
 | 2026-10-05 | initial | org | F-01..F-07 | Roadmap created; docs v0.2 baseline recorded; update rule added to `AGENTS.md`, `CLAUDE.md`, `project_structure.md`, `PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md` |
