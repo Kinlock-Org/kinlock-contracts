@@ -6,7 +6,7 @@
 //! Long-lived entries (config, attesters, tokens, payees) are extended to the network's max
 //! TTL. Extensions are always capped at `max_ttl()`: behavior above it is not relied on.
 
-use crate::constants::{APPROX_LEDGER_CLOSE_SECS, TTL_REFRESH_WINDOW_SECS};
+use crate::constants::{APPROX_LEDGER_CLOSE_SECS, STORAGE_VERSION, TTL_REFRESH_WINDOW_SECS};
 use crate::errors::Error;
 use crate::types::{Config, Lock, Payee};
 use soroban_sdk::{contracttype, Address, BytesN, Env};
@@ -24,6 +24,8 @@ pub enum DataKey {
     Payee(BytesN<32>),
     /// Persistent: lock_id -> Lock.
     Lock(u64),
+    /// Instance -> u32. Storage layout version (`constants::STORAGE_VERSION`).
+    StorageVersion,
 }
 
 /// Approximate number of ledgers in `secs`, saturating at `u32::MAX`.
@@ -48,6 +50,38 @@ fn extend_persistent_to_max(env: &Env, key: &DataKey) {
     env.storage()
         .persistent()
         .extend_ttl(key, threshold, extend_to);
+}
+
+pub fn write_storage_version(env: &Env) {
+    env.storage()
+        .instance()
+        .set(&DataKey::StorageVersion, &STORAGE_VERSION);
+}
+
+pub fn read_storage_version(env: &Env) -> Option<u32> {
+    env.storage().instance().get(&DataKey::StorageVersion)
+}
+
+/// Keeps a persistent entry alive at least until ledger time `until` (seconds).
+/// Fails with `LockTtlTooLong` rather than silently capping when the network's max TTL
+/// can't cover it: a lock that could be archived while holding funds must not be created.
+fn extend_persistent_until(env: &Env, key: &DataKey, until: u64) -> Result<(), Error> {
+    let remaining = until.saturating_sub(env.ledger().timestamp());
+    let ledgers = secs_to_ledgers(remaining).saturating_add(1);
+    if ledgers > env.storage().max_ttl() {
+        return Err(Error::LockTtlTooLong);
+    }
+    env.storage().persistent().extend_ttl(key, ledgers, ledgers);
+    Ok(())
+}
+
+pub fn extend_lock_ttl_until(env: &Env, lock_id: u64, until: u64) -> Result<(), Error> {
+    extend_persistent_until(env, &DataKey::Lock(lock_id), until)
+}
+
+/// Release and refund read the payee, so it must live at least as long as its locks.
+pub fn extend_payee_ttl_until(env: &Env, payee_id: &BytesN<32>, until: u64) -> Result<(), Error> {
+    extend_persistent_until(env, &DataKey::Payee(payee_id.clone()), until)
 }
 
 pub fn read_config(env: &Env) -> Result<Config, Error> {

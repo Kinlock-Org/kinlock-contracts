@@ -3,6 +3,7 @@
 //! Hard rule: nothing here may move, freeze, or redirect funds in existing locks.
 //! Pause and allowlist changes gate `create_lock` only.
 
+use crate::constants::MIN_AMOUNT;
 use crate::errors::Error;
 use crate::storage;
 use crate::types::Config;
@@ -20,6 +21,7 @@ pub fn initialize(env: &Env, admin: &Address) {
         total_locked: 0,
     };
     storage::write_config(env, &config);
+    storage::write_storage_version(env);
     storage::extend_instance_ttl(env);
 }
 
@@ -64,10 +66,12 @@ pub fn set_paused_new_locks(env: &Env, paused: bool) -> Result<(), Error> {
     Ok(())
 }
 
-/// A cap below the current `total_locked` only blocks new locks.
+/// Both caps must be at least `MIN_AMOUNT` (a smaller cap would act as a silent pause), and
+/// the per-lock cap can't exceed the global cap. A global cap below the current
+/// `total_locked` only blocks new locks.
 pub fn set_caps(env: &Env, max_lock_amount: i128, max_total_locked: i128) -> Result<(), Error> {
     let mut config = require_admin(env)?;
-    if max_lock_amount <= 0 || max_total_locked <= 0 {
+    if max_lock_amount < MIN_AMOUNT || max_lock_amount > max_total_locked {
         return Err(Error::InvalidCap);
     }
     config.max_lock_amount = max_lock_amount;

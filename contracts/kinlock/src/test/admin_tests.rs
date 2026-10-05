@@ -1,7 +1,9 @@
 //! Admin entry points: constructor, roster, allowlist, pause, caps. Row: M1-03.
 
 use super::Setup;
+use crate::constants::{MIN_AMOUNT, STORAGE_VERSION};
 use crate::errors::Error;
+use crate::storage;
 use soroban_sdk::testutils::Address as _;
 use soroban_sdk::Address;
 
@@ -59,32 +61,47 @@ fn pause_and_unpause_new_locks() {
 #[test]
 fn set_caps_updates_config_only() {
     let s = Setup::new();
-    s.client.set_caps(&1_000, &5_000);
+    s.client.set_caps(&(5 * MIN_AMOUNT), &(20 * MIN_AMOUNT));
     let c = s.config();
-    assert_eq!(c.max_lock_amount, 1_000);
-    assert_eq!(c.max_total_locked, 5_000);
+    assert_eq!(c.max_lock_amount, 5 * MIN_AMOUNT);
+    assert_eq!(c.max_total_locked, 20 * MIN_AMOUNT);
     assert_eq!(c.total_locked, 0);
     assert!(!c.paused_new_locks);
 }
 
 #[test]
-fn set_caps_rejects_zero_and_negative() {
+fn set_caps_accepts_boundaries() {
     let s = Setup::new();
-    assert_eq!(
-        s.client.try_set_caps(&0, &5_000),
-        Err(Ok(Error::InvalidCap))
-    );
-    assert_eq!(
-        s.client.try_set_caps(&1_000, &0),
-        Err(Ok(Error::InvalidCap))
-    );
-    assert_eq!(
-        s.client.try_set_caps(&-1, &5_000),
-        Err(Ok(Error::InvalidCap))
-    );
-    assert_eq!(
-        s.client.try_set_caps(&1_000, &-1),
-        Err(Ok(Error::InvalidCap))
-    );
+    s.client.set_caps(&MIN_AMOUNT, &MIN_AMOUNT);
+    assert_eq!(s.config().max_lock_amount, MIN_AMOUNT);
+}
+
+#[test]
+fn set_caps_rejects_invalid_values() {
+    let s = Setup::new();
+    let cases = [
+        (0, 5 * MIN_AMOUNT),
+        (-1, 5 * MIN_AMOUNT),
+        (MIN_AMOUNT - 1, 5 * MIN_AMOUNT),
+        (MIN_AMOUNT, MIN_AMOUNT - 1),
+        (5 * MIN_AMOUNT, 4 * MIN_AMOUNT),
+        (MIN_AMOUNT, -1),
+    ];
+    for (max_lock, max_total) in cases {
+        assert_eq!(
+            s.client.try_set_caps(&max_lock, &max_total),
+            Err(Ok(Error::InvalidCap)),
+            "{max_lock}, {max_total}"
+        );
+    }
     assert_eq!(s.config().max_lock_amount, i128::MAX);
+}
+
+#[test]
+fn constructor_writes_storage_version() {
+    let s = Setup::new();
+    let v = s
+        .env
+        .as_contract(&s.client.address, || storage::read_storage_version(&s.env));
+    assert_eq!(v, Some(STORAGE_VERSION));
 }
