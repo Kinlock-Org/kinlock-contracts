@@ -10,9 +10,11 @@ pub const MIN_AMOUNT: i128 = 10_000_000;
 /// `expires_at` must be at least this far ahead of `now` (seconds). Prevents instant-expiry locks.
 pub const MIN_EXPIRY_AHEAD_SECS: u64 = 60 * 60;
 
-/// Maximum lock lifetime (seconds). Pending DEC-07 / M0-08: must stay below the network's
-/// max entry TTL. 180 days until verified.
-pub const MAX_LOCK_DURATION_SECS: u64 = 180 * 24 * 60 * 60;
+/// Maximum lock lifetime (seconds). A lock must stay in storage until `expires_at +
+/// TTL_GRACE_SECS`, and the network's max entry TTL bounds that. Testnet on 2026-10-05:
+/// 3,110,400 ledgers (180 days at 5 s); a contract can extend to at most one ledger less.
+/// 149 + 30 days fits with about a day of margin; 150 + 30 does not (DEC-07, ADR-0020).
+pub const MAX_LOCK_DURATION_SECS: u64 = 149 * 24 * 60 * 60;
 
 /// After a payee is Suspended, the sender may refund once this much time has passed (seconds).
 pub const SUSPENSION_REFUND_GRACE_SECS: u64 = 14 * 24 * 60 * 60;

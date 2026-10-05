@@ -129,7 +129,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 7 | 4 | 8 | 0 | 0 | 0 | 37% |
 | 1 M0 Validate | 17 | 0 | 1 | 16 | 0 | 0 | 0 | 0% |
-| 2 Contract + registry | 36 | 8 | 8 | 20 | 0 | 0 | 0 | 22% |
+| 2 Contract + registry | 36 | 9 | 8 | 19 | 0 | 0 | 0 | 25% |
 | 3 SDK + indexer | 19 | 0 | 2 | 17 | 0 | 0 | 0 | 0% |
 | 4 App | 24 | 0 | 2 | 22 | 0 | 0 | 0 | 0% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 8 | 0 | 1 | 7 | 0 | 0 | 0 | 0% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **199** | **15** | **18** | **141** | **0** | **25** | **0** | **9%** |
+| **All** | **199** | **16** | **18** | **140** | **0** | **25** | **0** | **9%** |
 
 ---
 
@@ -236,7 +236,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-30 | Source `soroban-budget-assert` (not published on crates.io) or choose an alternative for budget tests | contracts | P0 | TODO | — | Crate usable from CI; `M1-16` can start |
 | M1-31 | Finish M1-03/M1-04 "Done when" once locks exist: tests that pause and token removal block only `create_lock`, and that `update_payout` leaves existing locks' payout unchanged | contracts | P0 | DONE | M1-05 | Tests pass; M1-03 and M1-04 can be marked `DONE` |
 | M1-32 | Upgrade auth and success test with a real uploaded WASM (an unknown hash also fails, so today's test can't isolate auth) | contracts | P0 | TODO | M1-17 | Upgrade signed by admin succeeds and asserts `env.auths()`; intruder-signed upgrade fails |
-| M1-33 | Reconcile `MAX_LOCK_DURATION` (180 days) with the network max entry TTL: testnet is 3,110,400 ledgers (~180 days at 5 s), so lock + 30-day grace caps expiry at ~150 days today. Set tests to the real max TTL | contracts | P0 | TODO | DEC-07 | Constant and tests match the network; ADR updated |
+| M1-33 | Reconcile `MAX_LOCK_DURATION` (180 days) with the network max entry TTL: testnet is 3,110,400 ledgers (~180 days at 5 s), so lock + 30-day grace caps expiry at ~150 days today. Set tests to the real max TTL | contracts | P0 | DONE | DEC-07 | Constant and tests match the network; ADR updated |
 | M1-34 | Decide `bump_lock` behavior when the full TTL no longer fits (clamp vs error) and after `expires_at + TTL_GRACE`; decide whether to convert seconds to ledgers more conservatively than 5 s | contracts | P1 | TODO | M1-33 | Decision recorded; tests cover it |
 | M1-35 | Spec decisions from the vault review: tranches with `unlock_at == expires_at` can never be released; suspend/re-activate toggling restarts the sender's refund grace | contracts | P1 | TODO | — | ADR accepted; code and tests follow it |
 | M1-36 | Failed token transfers surface the token's error code, which collides with Kinlock codes (SAC code 10 decodes as `PayeeAlreadyExists`); decide on a dedicated error or document it for the SDK | contracts | P1 | TODO | — | Decision recorded; SDK handles it |
@@ -346,7 +346,7 @@ Resolve each with an ADR and link it here. Move resolved rows to the bottom with
 | DEC-04 | Canonical docs location (org `.github`, recommended) | F-09 | Open |
 | DEC-05 | Commit Soroban `test_snapshots/` (default: ignore) | M1-01 | Open |
 | DEC-06 | Package manager (default: pnpm) | M2-01 | Open |
-| DEC-07 | Max lock duration (90 or 180 days) given network max TTL | M0-08 | Open |
+| DEC-07 | Max lock duration (90 or 180 days) given network max TTL | M0-08 | Resolved 2026-10-05: 149 days (ADR-0020) |
 | DEC-08 | Optional `refund_to` | M1-23 | Open |
 | DEC-09 | Tier-3 archive and backfill source | M0-09 | Open |
 | DEC-10 | Rate source for indicative local-currency display across currencies | M3-16 | Open |
@@ -523,6 +523,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-10-05 | `fix/max-lock-duration` | contracts | DONE: M1-33. DEC-07 resolved | `MAX_LOCK_DURATION` = 149 days: testnet `max_entry_ttl` is 3,110,400 ledgers and a contract can extend to one ledger less, so 150 + 30-day grace doesn't fit. Tests now run with the real network limit |
 | 2026-10-05 | `feat/vault` | contracts | DONE: M1-03, M1-04, M1-05, M1-06, M1-07, M1-08, M1-13, M1-31. IN PROGRESS: M1-09, M1-10, M1-11, M0-08. Added: M1-33, M1-34, M1-35, M1-36 | Vault: `create_lock`, `release`, `refund`, `decline`, `bump_lock`, `get_lock`; lock and payee TTL kept to `expires_at + TTL_GRACE` (`LockTtlTooLong` otherwise); `InvalidPayout`; `set_caps` sanity; storage version. 103 tests; 19 mutation checks caught; independent review: no critical/high. Testnet `max_entry_ttl` read as 3,110,400 ledgers (M0-08, M1-33). Vendored `docs/adr/` resynced with ADR-0018 and ADR-0019 |
 | 2026-10-05 | `feat/admin-registry` | contracts | IN PROGRESS: M1-03, M1-04, M1-12 (M1-02 stays IN PROGRESS). Added: M1-31, M1-32 | Admin functions (constructor replaces `init`), payee registry (`register_payee`, `set_status`, `update_payout`, `get_payee`), TTL extension for long-lived entries, new errors `InvalidCap`, `PayoutUnchanged`, `PayeeRevoked`; 42 unit, auth, event, and TTL tests; independent review findings addressed. Started ahead of G1 at the owner's request |
 | 2026-10-05 | scaffold (requested by owner; branch `chore/scaffold` in each repo, uncommitted) | all | IN PROGRESS: F-09, F-14, F-15, F-17, W-03, M1-01, M1-02, M1-24, M1-29, M2-01, M2-11, M3-01, M3-23. Added: F-19, M1-30, DEC-22, DEC-23 | Scaffolded org `.github` (docs, 16 ADRs + proposed ADR-0017, templates, `sync-docs.sh`, `roadmap-progress`) and the contracts, registry, sdk, and app repos with data models and stubs. Done ahead of G1 at the owner's request. `kinlock-ramp` left untouched (conditional). Counts refreshed with `scripts/roadmap-progress` |
