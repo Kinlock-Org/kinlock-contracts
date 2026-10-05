@@ -1,0 +1,6 @@
+# Illustrative: teams are created in roadmap F-12. Replace handles as needed.
+*                       @Kinlock-Org/maintainers
+/contracts/**           @Kinlock-Org/contract-reviewers
+/scripts/deploy.sh      @Kinlock-Org/contract-reviewers
+/deployments/**         @Kinlock-Org/contract-reviewers
+/.github/workflows/**   @Kinlock-Org/maintainers

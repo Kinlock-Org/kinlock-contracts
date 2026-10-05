@@ -1,0 +1,6 @@
+/target
+**/test_snapshots/
+.env
+.env.*
+!.env.example
+.stellar/

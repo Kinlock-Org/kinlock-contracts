@@ -1,0 +1,12 @@
+# DRAFT (ask-first: release config). Publish TS bindings on tag. Pending F-11 (npm scope) and M1-18.
+name: bindings
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: read
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Bindings publish not configured yet (M1-18)."

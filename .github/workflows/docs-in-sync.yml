@@ -1,0 +1,19 @@
+# Fails if this repo's vendored docs/ differ from the canonical copies in Kinlock-Org/.github.
+# DRAFT (ask-first: CI).
+name: docs-in-sync
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  docs-in-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: repo
+      - uses: actions/checkout@v4
+        with:
+          repository: Kinlock-Org/.github
+          path: canonical
+      - run: canonical/scripts/sync-docs.sh --check repo

@@ -1,0 +1,26 @@
+# Fails a PR that doesn't change ROADMAP.md or doesn't add a Changelog row (AGENTS.md §12).
+# DRAFT (ask-first: CI).
+name: roadmap-check
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  roadmap-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: ROADMAP.md updated with a Changelog entry
+        run: |
+          base="origin/${{ github.base_ref }}"
+          diff=$(git diff "$base"...HEAD -- ROADMAP.md)
+          if [ -z "$diff" ]; then
+            echo "::error::ROADMAP.md was not updated. Every PR must update it (AGENTS.md §12)."
+            exit 1
+          fi
+          if ! echo "$diff" | grep -qE '^\+\| [0-9]{4}-[0-9]{2}-[0-9]{2} \|'; then
+            echo "::error::No new Changelog entry found in ROADMAP.md."
+            exit 1
+          fi
