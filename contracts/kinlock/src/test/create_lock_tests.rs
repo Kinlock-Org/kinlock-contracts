@@ -373,3 +373,22 @@ fn insufficient_balance_reverts_everything() {
     assert_eq!(c.s.balance(&c.token, &poor), MIN_AMOUNT - 1);
     assert_eq!(c.s.client.try_get_lock(&1), Err(Ok(Error::LockNotFound)));
 }
+
+/// The longest lock allowed fits the network's storage limit, including the grace period,
+/// and the documented-but-unworkable old maximum doesn't.
+#[test]
+fn max_duration_fits_the_network_ttl() {
+    use crate::constants::TTL_GRACE_SECS;
+    use crate::storage::secs_to_ledgers;
+    let c = ctx();
+    let max_ttl =
+        c.s.env
+            .as_contract(&c.s.client.address, || c.s.env.storage().max_ttl());
+    // Same formula as `storage::extend_persistent_until`.
+    let needed = |secs: u64| secs_to_ledgers(secs).saturating_add(1);
+    assert!(needed(MAX_LOCK_DURATION_SECS + TTL_GRACE_SECS) <= max_ttl);
+    assert!(c
+        .try_create(&c.one(MIN_AMOUNT), T0 + MAX_LOCK_DURATION_SECS)
+        .is_ok());
+    assert!(needed(150 * DAY + TTL_GRACE_SECS) > max_ttl);
+}

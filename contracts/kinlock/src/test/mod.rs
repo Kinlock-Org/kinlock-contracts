@@ -19,6 +19,9 @@ use soroban_sdk::{Address, BytesN, Env, Vec};
 
 /// Ledger time at the start of every test.
 pub(crate) const T0: u64 = 1_000_000;
+/// Testnet's `max_entry_ttl` (ledgers), read with `stellar network settings` on 2026-10-05.
+/// The SDK's test default is larger and once hid that 180-day locks couldn't fit.
+pub(crate) const NETWORK_MAX_ENTRY_TTL: u32 = 3_110_400;
 pub(crate) const DAY: u64 = 24 * 60 * 60;
 
 /// Everything about one funded lock created by `Setup::open_lock`.
@@ -47,6 +50,7 @@ impl Setup {
     pub fn with_auths(mock_all: bool) -> Self {
         let env = Env::default();
         env.ledger().set_timestamp(T0);
+        env.ledger().set_max_entry_ttl(NETWORK_MAX_ENTRY_TTL);
         if mock_all {
             env.mock_all_auths();
         }
