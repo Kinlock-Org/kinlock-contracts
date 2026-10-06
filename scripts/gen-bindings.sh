@@ -16,6 +16,7 @@ stellar contract bindings typescript \
   --overwrite
 
 # Package metadata (ADR-0023): public npm package under @kinlock, built output only.
+# stellar-sdk is pinned to the version kinlock-sdk uses, so apps load a single copy.
 tmp="$(mktemp)"
 jq --arg version "$VERSION" '
   .name = "@kinlock/contract"
@@ -25,5 +26,6 @@ jq --arg version "$VERSION" '
   | .repository = {type: "git", url: "https://github.com/Kinlock-Org/kinlock-contracts", directory: "bindings/typescript"}
   | .files = ["dist"]
   | .publishConfig = {access: "public"}
+  | .dependencies["@stellar/stellar-sdk"] = "17.2.1"
 ' "$OUT/package.json" > "$tmp"
 mv "$tmp" "$OUT/package.json"
