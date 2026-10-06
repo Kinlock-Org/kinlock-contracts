@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Last updated** | 2026-10-05 |
+| **Last updated** | 2026-10-06 |
 | **Docs baseline** | v0.3, worldwide scope (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`, `AGENTS.md`, `CLAUDE.md`, `project_structure.md`) |
 | **Current phase** | Phase 0 (Foundations) → starting Phase 1 (M0 Validate) |
 | **Readiness** | See [§3](#3-progress-snapshot) |
@@ -129,7 +129,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 7 | 4 | 8 | 0 | 0 | 0 | 37% |
 | 1 M0 Validate | 17 | 0 | 1 | 16 | 0 | 0 | 0 | 0% |
-| 2 Contract + registry | 36 | 9 | 8 | 19 | 0 | 0 | 0 | 25% |
+| 2 Contract + registry | 36 | 11 | 7 | 18 | 0 | 0 | 0 | 31% |
 | 3 SDK + indexer | 19 | 0 | 2 | 17 | 0 | 0 | 0 | 0% |
 | 4 App | 24 | 0 | 2 | 22 | 0 | 0 | 0 | 0% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 8 | 0 | 1 | 7 | 0 | 0 | 0 | 0% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **199** | **16** | **18** | **140** | **0** | **25** | **0** | **9%** |
+| **All** | **199** | **18** | **17** | **139** | **0** | **25** | **0** | **10%** |
 
 ---
 
@@ -219,11 +219,11 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-07 | Vault: `refund` (expired, Revoked, Suspended past grace) | contracts | P0 | DONE | M1-05 | All three paths and rejections tested |
 | M1-08 | Vault: `decline` | contracts | P0 | DONE | M1-05 | Returns only remainder; payee-only |
 | M1-09 | `bump_lock` and TTL policy on create and on terminal states | contracts | P0 | IN PROGRESS | M1-05, M0-08 | TTL ≥ `expires_at + TTL_GRACE`; permissionless bump tested |
-| M1-10 | `total_locked` bookkeeping and cap enforcement | contracts | P1 | IN PROGRESS | M1-05 | Invariant 9 holds under property tests |
+| M1-10 | `total_locked` bookkeeping and cap enforcement | contracts | P1 | DONE | M1-05 | Invariant 9 holds under property tests |
 | M1-11 | Unit tests for every entry point (success and each failure) | contracts | P0 | IN PROGRESS | M1-03..M1-09 | Coverage of every error variant |
 | M1-12 | Explicit-auth tests (not only `mock_all_auths`) | contracts | P0 | IN PROGRESS | M1-11 | Every privileged function asserts `env.auths()` |
 | M1-13 | Boundary tests: `now == unlock_at`, `expires_at - 1`, `expires_at` | contracts | P0 | DONE | M1-06, M1-07 | Pass |
-| M1-14 | Property tests for invariants 1–10 | contracts | P0 | TODO | M1-11 | `proptest` sequences green over many runs |
+| M1-14 | Property tests for invariants 1–10 | contracts | P0 | DONE | M1-11 | `proptest` sequences green over many runs |
 | M1-15 | Integration tests: C-address sender and payee, missing/unauthorized trustline, partial release then refund/decline, allowlist removal with open locks | contracts | P0 | TODO | M1-11 | Pass on local network |
 | M1-16 | Budget tests with `soroban-budget-assert`; compare local estimates to testnet simulation | contracts | P0 | TODO | M1-11 | Budgets recorded; divergence measured and documented |
 | M1-17 | `deploy.sh` (testnet default, mainnet guarded), `deployments/testnet.json`, generated `DEPLOYMENTS.md` | contracts | P0 | TODO | M1-11 | Deploys to testnet; mainnet requires flag and confirmation |
@@ -523,6 +523,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-10-06 | `test/property-invariants` | contracts | DONE: M1-14, M1-10 | Property tests for invariants 1–10: random sequences (create, release, refund, decline, status and payout changes, time jumps and exact boundaries, pause, allowlist and roster changes, frozen accounts) check every invariant after every step, and that release/refund/decline succeed exactly when the spec allows. Green over 512 cases; catches 13–14 of 14 injected vault bugs per 64-case run. Started before M1-11 was DONE, at the owner's request |
 | 2026-10-05 | `fix/max-lock-duration` | contracts | DONE: M1-33. DEC-07 resolved | `MAX_LOCK_DURATION` = 149 days: testnet `max_entry_ttl` is 3,110,400 ledgers and a contract can extend to one ledger less, so 150 + 30-day grace doesn't fit. Tests now run with the real network limit |
 | 2026-10-05 | `feat/vault` | contracts | DONE: M1-03, M1-04, M1-05, M1-06, M1-07, M1-08, M1-13, M1-31. IN PROGRESS: M1-09, M1-10, M1-11, M0-08. Added: M1-33, M1-34, M1-35, M1-36 | Vault: `create_lock`, `release`, `refund`, `decline`, `bump_lock`, `get_lock`; lock and payee TTL kept to `expires_at + TTL_GRACE` (`LockTtlTooLong` otherwise); `InvalidPayout`; `set_caps` sanity; storage version. 103 tests; 19 mutation checks caught; independent review: no critical/high. Testnet `max_entry_ttl` read as 3,110,400 ledgers (M0-08, M1-33). Vendored `docs/adr/` resynced with ADR-0018 and ADR-0019 |
 | 2026-10-05 | `feat/admin-registry` | contracts | IN PROGRESS: M1-03, M1-04, M1-12 (M1-02 stays IN PROGRESS). Added: M1-31, M1-32 | Admin functions (constructor replaces `init`), payee registry (`register_payee`, `set_status`, `update_payout`, `get_payee`), TTL extension for long-lived entries, new errors `InvalidCap`, `PayoutUnchanged`, `PayeeRevoked`; 42 unit, auth, event, and TTL tests; independent review findings addressed. Started ahead of G1 at the owner's request |
