@@ -7,9 +7,9 @@ The `kinlock` Soroban contract (registry + vault modules), tests, deploy scripts
 ## Quick start
 ```
 cargo fmt --all -- --check
+stellar contract build     # first: tests load the built WASM (needs stellar-cli 25.2+)
 cargo clippy --all-targets -- -D warnings
 cargo test --workspace
-stellar contract build
 scripts/localnet.sh        # local network
 ```
 
