@@ -1,0 +1,10 @@
+{
+  "network": "testnet",
+  "contract_id": "CDIPDHSAKP2MNANLYV6VRWVTWFJH3PQRHBRDBVMYNMRYKSR66JVPTLYL",
+  "wasm_hash": "af55fb482f79c40d8c9b7d52acc5f0b06c8dc790b4c19a286485fd5367483145",
+  "admin": "GDSHAWQYQTXN3FNO7XOWRNBQONQIH6BXW4YZTTYTGRCYFTCJURKEKUTN",
+  "git_commit": "16ea3a1d125e302f09d0fa0abcd40505ea7b1365",
+  "git_dirty": false,
+  "stellar_cli": "stellar 27.0.0 (5a7c5fe76530bf4248477ac812fc757146b98cc4)",
+  "deployed_at": "2026-10-06T09:39:37Z"
+}
