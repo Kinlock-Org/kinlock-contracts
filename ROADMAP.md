@@ -129,7 +129,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 7 | 4 | 8 | 0 | 0 | 0 | 37% |
 | 1 M0 Validate | 17 | 0 | 1 | 16 | 0 | 0 | 0 | 0% |
-| 2 Contract + registry | 36 | 14 | 5 | 17 | 0 | 0 | 0 | 39% |
+| 2 Contract + registry | 36 | 15 | 5 | 16 | 0 | 0 | 0 | 42% |
 | 3 SDK + indexer | 19 | 0 | 2 | 17 | 0 | 0 | 0 | 0% |
 | 4 App | 24 | 0 | 2 | 22 | 0 | 0 | 0 | 0% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 8 | 0 | 1 | 7 | 0 | 0 | 0 | 0% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **199** | **21** | **15** | **138** | **0** | **25** | **0** | **12%** |
+| **All** | **199** | **22** | **15** | **137** | **0** | **25** | **0** | **13%** |
 
 ---
 
@@ -226,7 +226,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-14 | Property tests for invariants 1–10 | contracts | P0 | DONE | M1-11 | `proptest` sequences green over many runs |
 | M1-15 | Integration tests: C-address sender and payee, missing/unauthorized trustline, partial release then refund/decline, allowlist removal with open locks | contracts | P0 | TODO | M1-11 | Pass on local network |
 | M1-16 | Budget tests with `soroban-budget-assert`; compare local estimates to testnet simulation | contracts | P0 | TODO | M1-11 | Budgets recorded; divergence measured and documented |
-| M1-17 | `deploy.sh` (testnet default, mainnet guarded), `deployments/testnet.json`, generated `DEPLOYMENTS.md` | contracts | P0 | TODO | M1-11 | Deploys to testnet; mainnet requires flag and confirmation |
+| M1-17 | `deploy.sh` (testnet default, mainnet guarded), `deployments/testnet.json`, generated `DEPLOYMENTS.md` | contracts | P0 | DONE | M1-11 | Deploys to testnet; mainnet requires flag and confirmation |
 | M1-18 | Generate TS bindings and publish pipeline | contracts | P0 | TODO | M1-17, F-11 | Package published on tag; SDK can consume |
 | M1-19 | Deploy to testnet with a test multisig admin; add test attesters and testnet USDC | contracts | P0 | TODO | M1-17 | Contract ID recorded in `DEPLOYMENTS.md` |
 | M1-20 | Upgrade/migration test against a snapshot of testnet state | contracts | P1 | TODO | M1-19 | Invariants hold after upgrade |
@@ -523,6 +523,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-10-06 | `feat/deploy-script` | contracts | DONE: M1-17 | `scripts/deploy.sh` (testnet/local, guarded mainnet, dry run, uploaded-hash check) and `scripts/gen-deployments-md.sh`. Deployed to testnet: `CDIPDHSAKP2MNANLYV6VRWVTWFJH3PQRHBRDBVMYNMRYKSR66JVPTLYL`, single-key admin `kinlock-testnet-deployer` (multisig admin, attesters, and testnet USDC remain M1-19) |
 | 2026-10-06 | `test/close-m1-11-m1-12` | contracts | DONE: M1-11, M1-12, M1-32 | Removed never-returned errors `AlreadyInitialized` (1) and `TrancheSumMismatch` (27), codes retired; every remaining error variant is now covered by a test. Upgrade tested with the real compiled WASM (admin auth asserted, state survives, intruder fails). CI installs stellar-cli 27.0.0 (checksum-verified) and builds the WASM before clippy and tests |
 | 2026-10-06 | `test/property-invariants` | contracts | DONE: M1-14, M1-10 | Property tests for invariants 1–10: random sequences (create, release, refund, decline, status and payout changes, time jumps and exact boundaries, pause, allowlist and roster changes, frozen accounts) check every invariant after every step, and that release/refund/decline succeed exactly when the spec allows. Green over 512 cases; catches 13–14 of 14 injected vault bugs per 64-case run. Started before M1-11 was DONE, at the owner's request |
 | 2026-10-05 | `fix/max-lock-duration` | contracts | DONE: M1-33. DEC-07 resolved | `MAX_LOCK_DURATION` = 149 days: testnet `max_entry_ttl` is 3,110,400 ledgers and a contract can extend to one ledger less, so 150 + 30-day grace doesn't fit. Tests now run with the real network limit |
