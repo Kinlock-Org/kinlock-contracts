@@ -18,7 +18,7 @@ scripts/localnet.sh        # local network
 STELLAR_ACCOUNT=<keystore identity name> KINLOCK_ADMIN=<admin address> scripts/deploy.sh --dry-run
 STELLAR_ACCOUNT=<keystore identity name> KINLOCK_ADMIN=<admin address> scripts/deploy.sh
 ```
-Defaults to testnet; `STELLAR_NETWORK=local` targets `scripts/localnet.sh`. Mainnet needs `KINLOCK_ALLOW_MAINNET=1` plus a typed confirmation. Each deploy writes `deployments/<network>.json` and regenerates `DEPLOYMENTS.md` (never edit either by hand). Current deployments: [`DEPLOYMENTS.md`](DEPLOYMENTS.md).
+Defaults to testnet; `STELLAR_NETWORK=local` targets `scripts/localnet.sh`. Mainnet needs `KINLOCK_ALLOW_MAINNET=1` plus a typed confirmation. Each deploy writes `deployments/<network>.json` and regenerates `DEPLOYMENTS.md` (never edit either by hand). Current deployments: [`DEPLOYMENTS.md`](DEPLOYMENTS.md); testnet admin multisig and configuration: [`deployments/testnet-setup.md`](deployments/testnet-setup.md). Admin calls on testnet: `scripts/multisig-invoke.sh`.
 
 ## Read first
 - `docs/ARCHITECTURE_ESSENTIALS.md` (short; read at the start of every task)
