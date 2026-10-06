@@ -356,7 +356,7 @@ Product-level cases. Technical cases (trustlines, TTL, timing) are in `ARCHITECT
 3. In each pilot market, which anchor or wallet route will payees actually use to reach local currency?
 4. What are the legal entity and jurisdiction for the app and registry?
 5. What does a sender's all-in cost need to be to beat a direct bank transfer?
-6. Should the maximum lock duration be 90 or 180 days?
+6. ~~Should the maximum lock duration be 90 or 180 days?~~ Resolved: 149 days, the most the network's storage limit allows with a 30-day refund grace (ADR-0020).
 7. Is a testnet pilot with institutions' test accounts enough signal, or do we need a very small real-value pilot after legal review?
 8. **Which country (or countries) are the pilot markets?** Candidate: Nigeria (team is in Lagos) plus at least one market in a different region and currency, to prove the core is market-agnostic.
 9. Supported-countries policy: who decides, on what criteria, and how are sanctions handled?

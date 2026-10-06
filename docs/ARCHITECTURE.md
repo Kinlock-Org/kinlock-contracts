@@ -113,7 +113,7 @@ One contract, `kinlock`, with `registry` and `vault` modules in separate files f
 | `MAX_TRANCHES` | 12 | Termly fees = 3, monthly rent = up to 12 |
 | `MIN_AMOUNT` | 1 USDC in base units | Dust guard |
 | `MIN_EXPIRY_AHEAD` | 1 hour | Prevents instant-expiry locks |
-| `MAX_LOCK_DURATION` | 180 days | **Must stay below the network's max entry TTL.** Verify current network settings |
+| `MAX_LOCK_DURATION` | 149 days | Lock + `TTL_GRACE` must fit the network's max entry TTL (testnet: 3,110,400 ledgers ≈ 180 days). See ADR-0020 |
 | `SUSPENSION_REFUND_GRACE` | 14 days | Sender early-refund after payee suspension |
 | `TTL_GRACE` | 30 days | Added beyond expiry when extending TTL |
 
@@ -550,7 +550,7 @@ IDs are shared with `PRD.md` §9. B = what breaks, E = missing edge cases, O = o
 | E9 | Action exactly at `expires_at` | Release only if `now < expires_at`; refund only if `now ≥ expires_at` |
 | E10 | Ledger timestamp is approximate | No minute-level guarantees; UI shows UTC and local time |
 | E11 | TTL or archival before expiry | See B10 |
-| E12 | Very short or very long expiry | Min 1 hour ahead; max 180 days |
+| E12 | Very short or very long expiry | Min 1 hour ahead; max 149 days (ADR-0020) |
 
 **Roles and keys**
 
@@ -623,7 +623,7 @@ IDs are shared with `PRD.md` §9. B = what breaks, E = missing edge cases, O = o
 ## 14. Open technical questions
 
 1. Archive source for receipt verification beyond RPC retention (Tier 3), and for indexer backfill.
-2. Network's current max entry TTL: confirms `MAX_LOCK_DURATION`.
+2. ~~Network's current max entry TTL: confirms `MAX_LOCK_DURATION`.~~ Resolved: testnet 3,110,400 ledgers; `MAX_LOCK_DURATION` = 149 days (ADR-0020). Re-check mainnet before launch.
 3. Whether to ship optional `refund_to` (E5).
 4. Which wallets and anchors give payees a workable local-currency cash-out in each pilot market (M0 spike, per market).
 5. Whether `LCK-10` payee acknowledgment is an event only or also surfaced on receipts.

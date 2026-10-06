@@ -171,7 +171,7 @@ None is a contract bug. Don't over-invest in the contract before M0 answers thes
 
 ## 14. Open questions
 - Archive source for verification and indexer backfill
-- Network max entry TTL (sets `MAX_LOCK_DURATION`)
+- ~~Network max entry TTL~~ Resolved: `MAX_LOCK_DURATION` = 149 days (ADR-0020); re-check mainnet before launch
 - Optional `refund_to` address?
 - Pilot markets and the supported-countries policy (M0)
 - Which wallet/anchor route gives payees local-currency cash-out, per pilot market (M0)
