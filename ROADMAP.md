@@ -129,7 +129,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 12 | 2 | 5 | 0 | 0 | 0 | 63% |
 | 1 M0 Validate | 17 | 0 | 1 | 16 | 0 | 0 | 0 | 0% |
-| 2 Contract + registry | 36 | 16 | 6 | 14 | 0 | 0 | 0 | 44% |
+| 2 Contract + registry | 36 | 16 | 5 | 15 | 0 | 0 | 0 | 44% |
 | 3 SDK + indexer | 19 | 1 | 1 | 17 | 0 | 0 | 0 | 5% |
 | 4 App | 24 | 1 | 1 | 22 | 0 | 0 | 0 | 4% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 8 | 1 | 0 | 7 | 0 | 0 | 0 | 13% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **199** | **31** | **11** | **132** | **0** | **25** | **0** | **18%** |
+| **All** | **199** | **31** | **10** | **133** | **0** | **25** | **0** | **18%** |
 
 ---
 
@@ -227,7 +227,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-15 | Integration tests: C-address sender and payee, missing/unauthorized trustline, partial release then refund/decline, allowlist removal with open locks | contracts | P0 | TODO | M1-11 | Pass on local network |
 | M1-16 | Budget tests with `soroban-budget-assert`; compare local estimates to testnet simulation | contracts | P0 | TODO | M1-11 | Budgets recorded; divergence measured and documented |
 | M1-17 | `deploy.sh` (testnet default, mainnet guarded), `deployments/testnet.json`, generated `DEPLOYMENTS.md` | contracts | P0 | DONE | M1-11 | Deploys to testnet; mainnet requires flag and confirmation |
-| M1-18 | Generate TS bindings and publish pipeline | contracts | P0 | IN PROGRESS | M1-17, F-11 | Package published on tag; SDK can consume |
+| M1-18 | Generate TS bindings and publish pipeline | contracts | P0 | TODO | M1-17, F-11 | Package published on tag; SDK can consume |
 | M1-19 | Deploy to testnet with a test multisig admin; add test attesters and testnet USDC | contracts | P0 | DONE | M1-17 | Contract ID recorded in `DEPLOYMENTS.md` |
 | M1-20 | Upgrade/migration test against a snapshot of testnet state | contracts | P1 | TODO | M1-19 | Invariants hold after upgrade |
 | M1-21 | Contract `README`, `SECURITY.md`, and threat-model doc linked to invariants | contracts | P1 | TODO | M1-14 | Reviewer can map each threat to a control |
@@ -523,8 +523,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
-| 2026-10-06 | `feat/ts-bindings` | contracts | IN PROGRESS: M1-18 | Generated TypeScript bindings committed as `@kinlock/contract` 0.1.0; `gen-bindings.sh` sets package metadata; tag-triggered publish workflow (`bindings-vX.Y.Z`, npm provenance) and a CI check that committed bindings match a fresh generation. Not yet published: waits on the npm org and `NPM_TOKEN` (F-11) |
-| 2026-10-06 | `chore/license-and-publishing` | org | DONE: F-10. IN PROGRESS: F-11. DEC-02, DEC-03 resolved | Apache-2.0 for every repo (ADR-0022, `LICENSE` + template); TypeScript packages publish to npm under `@kinlock` from CI on tag (ADR-0023). F-11 waits on an owner creating the npm org and the `NPM_TOKEN` secret. Canonical roadmap re-merged from all repos (picks up M2-01, M3-01) |
+| 2026-10-06 | `chore/license-and-publishing` | org | DONE: F-10. IN PROGRESS: F-11. DEC-02, DEC-03 resolved | Apache-2.0 for every repo (ADR-0022, `LICENSE` + template); TypeScript packages publish to npm under `@kinlock` from CI on tag (ADR-0023). F-11 waits on an owner creating the npm org and the `NPM_TOKEN` secret. Canonical roadmap re-merged from all repos (picks up M2-01, M3-01). `sync-docs.sh --check` now also fails on ADRs a repo has that the canonical copy lacks (it missed that drift before) |
 | 2026-10-06 | `chore/ts-tooling` | sdk | DONE: M2-01. DEC-22, DEC-23 resolved (ADR-0021) | Biome (lint + format), Vitest, and tsx added; CI now runs lint, typecheck, test, and build. Tests pin the SDK's public API to the approved list and the contract's enum order, and check the indexer refuses bad config |
 | 2026-10-06 | `chore/roadmap-sync` (lockfile) | sdk | no row changes (M2-01 stays IN PROGRESS: lint and test tooling pending DEC-22) | Commit `pnpm-lock.yaml` for the dependency versions approved by the owner on 2026-10-06, so CI's frozen install works; typecheck and build pass |
 | 2026-10-06 | `chore/ts-tooling` | app | DONE: M3-01. DEC-22, DEC-23 resolved (ADR-0021) | Biome (lint + format) and Vitest added; CI now runs lint, typecheck, test, and build. Tests keep the receipt wording exactly "Payment to verified payee", ban overclaiming wording, and check every message key resolves. M3-23 stays IN PROGRESS (inline-string lint and multi-locale formatting tests) |
