@@ -1,4 +1,6 @@
-# DRAFT (ask-first: CI). fmt, clippy -D warnings, test, build. Budget job pending M1-16.
+# fmt, build (WASM), clippy -D warnings, test. Budget job pending M1-16.
+# The WASM is built first: the upgrade tests load target/wasm32v1-none/release/kinlock.wasm,
+# and soroban-sdk only builds contracts through `stellar contract build`.
 name: ci
 on:
   pull_request:
@@ -6,6 +8,10 @@ on:
     branches: [main]
 permissions:
   contents: read
+env:
+  STELLAR_CLI_VERSION: 27.0.0
+  # GitHub's published digest for stellar-cli-27.0.0-x86_64-unknown-linux-gnu.tar.gz.
+  STELLAR_CLI_SHA256: 357bf712f6353c28cd33c794402a3c87231757a5b305e6ef1604365af4fdd556
 jobs:
   contract:
     runs-on: ubuntu-latest
@@ -16,8 +22,15 @@ jobs:
           toolchain: 1.96.1
           targets: wasm32v1-none
           components: rustfmt, clippy
+      - name: Install stellar-cli (pinned, checksum verified)
+        run: |
+          name="stellar-cli-${STELLAR_CLI_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+          curl -sSL -o "$name" "https://github.com/stellar/stellar-cli/releases/download/v${STELLAR_CLI_VERSION}/$name"
+          echo "${STELLAR_CLI_SHA256}  $name" | sha256sum -c -
+          mkdir -p "$HOME/.local/bin"
+          tar xzf "$name" -C "$HOME/.local/bin" stellar
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - run: cargo fmt --all -- --check
+      - run: stellar contract build
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo test --workspace
-      # stellar CLI install step to be pinned when CI is approved (M1-01).
-      # - run: stellar contract build

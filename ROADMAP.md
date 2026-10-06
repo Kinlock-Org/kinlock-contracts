@@ -129,7 +129,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 7 | 4 | 8 | 0 | 0 | 0 | 37% |
 | 1 M0 Validate | 17 | 0 | 1 | 16 | 0 | 0 | 0 | 0% |
-| 2 Contract + registry | 36 | 11 | 7 | 18 | 0 | 0 | 0 | 31% |
+| 2 Contract + registry | 36 | 14 | 5 | 17 | 0 | 0 | 0 | 39% |
 | 3 SDK + indexer | 19 | 0 | 2 | 17 | 0 | 0 | 0 | 0% |
 | 4 App | 24 | 0 | 2 | 22 | 0 | 0 | 0 | 0% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 8 | 0 | 1 | 7 | 0 | 0 | 0 | 0% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **199** | **18** | **17** | **139** | **0** | **25** | **0** | **10%** |
+| **All** | **199** | **21** | **15** | **138** | **0** | **25** | **0** | **12%** |
 
 ---
 
@@ -220,8 +220,8 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-08 | Vault: `decline` | contracts | P0 | DONE | M1-05 | Returns only remainder; payee-only |
 | M1-09 | `bump_lock` and TTL policy on create and on terminal states | contracts | P0 | IN PROGRESS | M1-05, M0-08 | TTL ≥ `expires_at + TTL_GRACE`; permissionless bump tested |
 | M1-10 | `total_locked` bookkeeping and cap enforcement | contracts | P1 | DONE | M1-05 | Invariant 9 holds under property tests |
-| M1-11 | Unit tests for every entry point (success and each failure) | contracts | P0 | IN PROGRESS | M1-03..M1-09 | Coverage of every error variant |
-| M1-12 | Explicit-auth tests (not only `mock_all_auths`) | contracts | P0 | IN PROGRESS | M1-11 | Every privileged function asserts `env.auths()` |
+| M1-11 | Unit tests for every entry point (success and each failure) | contracts | P0 | DONE | M1-03..M1-09 | Coverage of every error variant |
+| M1-12 | Explicit-auth tests (not only `mock_all_auths`) | contracts | P0 | DONE | M1-11 | Every privileged function asserts `env.auths()` |
 | M1-13 | Boundary tests: `now == unlock_at`, `expires_at - 1`, `expires_at` | contracts | P0 | DONE | M1-06, M1-07 | Pass |
 | M1-14 | Property tests for invariants 1–10 | contracts | P0 | DONE | M1-11 | `proptest` sequences green over many runs |
 | M1-15 | Integration tests: C-address sender and payee, missing/unauthorized trustline, partial release then refund/decline, allowlist removal with open locks | contracts | P0 | TODO | M1-11 | Pass on local network |
@@ -235,7 +235,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-23 | Decide optional `refund_to` (ADR) | contracts | P2 | TODO | M1-05 | ADR accepted or declined |
 | M1-30 | Source `soroban-budget-assert` (not published on crates.io) or choose an alternative for budget tests | contracts | P0 | TODO | — | Crate usable from CI; `M1-16` can start |
 | M1-31 | Finish M1-03/M1-04 "Done when" once locks exist: tests that pause and token removal block only `create_lock`, and that `update_payout` leaves existing locks' payout unchanged | contracts | P0 | DONE | M1-05 | Tests pass; M1-03 and M1-04 can be marked `DONE` |
-| M1-32 | Upgrade auth and success test with a real uploaded WASM (an unknown hash also fails, so today's test can't isolate auth) | contracts | P0 | TODO | M1-17 | Upgrade signed by admin succeeds and asserts `env.auths()`; intruder-signed upgrade fails |
+| M1-32 | Upgrade auth and success test with a real uploaded WASM (an unknown hash also fails, so today's test can't isolate auth) | contracts | P0 | DONE | M1-17 | Upgrade signed by admin succeeds and asserts `env.auths()`; intruder-signed upgrade fails |
 | M1-33 | Reconcile `MAX_LOCK_DURATION` (180 days) with the network max entry TTL: testnet is 3,110,400 ledgers (~180 days at 5 s), so lock + 30-day grace caps expiry at ~150 days today. Set tests to the real max TTL | contracts | P0 | DONE | DEC-07 | Constant and tests match the network; ADR updated |
 | M1-34 | Decide `bump_lock` behavior when the full TTL no longer fits (clamp vs error) and after `expires_at + TTL_GRACE`; decide whether to convert seconds to ledgers more conservatively than 5 s | contracts | P1 | TODO | M1-33 | Decision recorded; tests cover it |
 | M1-35 | Spec decisions from the vault review: tranches with `unlock_at == expires_at` can never be released; suspend/re-activate toggling restarts the sender's refund grace | contracts | P1 | TODO | — | ADR accepted; code and tests follow it |
@@ -523,6 +523,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-10-06 | `test/close-m1-11-m1-12` | contracts | DONE: M1-11, M1-12, M1-32 | Removed never-returned errors `AlreadyInitialized` (1) and `TrancheSumMismatch` (27), codes retired; every remaining error variant is now covered by a test. Upgrade tested with the real compiled WASM (admin auth asserted, state survives, intruder fails). CI installs stellar-cli 27.0.0 (checksum-verified) and builds the WASM before clippy and tests |
 | 2026-10-06 | `test/property-invariants` | contracts | DONE: M1-14, M1-10 | Property tests for invariants 1–10: random sequences (create, release, refund, decline, status and payout changes, time jumps and exact boundaries, pause, allowlist and roster changes, frozen accounts) check every invariant after every step, and that release/refund/decline succeed exactly when the spec allows. Green over 512 cases; catches 13–14 of 14 injected vault bugs per 64-case run. Started before M1-11 was DONE, at the owner's request |
 | 2026-10-05 | `fix/max-lock-duration` | contracts | DONE: M1-33. DEC-07 resolved | `MAX_LOCK_DURATION` = 149 days: testnet `max_entry_ttl` is 3,110,400 ledgers and a contract can extend to one ledger less, so 150 + 30-day grace doesn't fit. Tests now run with the real network limit |
 | 2026-10-05 | `feat/vault` | contracts | DONE: M1-03, M1-04, M1-05, M1-06, M1-07, M1-08, M1-13, M1-31. IN PROGRESS: M1-09, M1-10, M1-11, M0-08. Added: M1-33, M1-34, M1-35, M1-36 | Vault: `create_lock`, `release`, `refund`, `decline`, `bump_lock`, `get_lock`; lock and payee TTL kept to `expires_at + TTL_GRACE` (`LockTtlTooLong` otherwise); `InvalidPayout`; `set_caps` sanity; storage version. 103 tests; 19 mutation checks caught; independent review: no critical/high. Testnet `max_entry_ttl` read as 3,110,400 ledgers (M0-08, M1-33). Vendored `docs/adr/` resynced with ADR-0018 and ADR-0019 |
