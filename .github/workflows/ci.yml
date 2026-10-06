@@ -32,5 +32,9 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - run: cargo fmt --all -- --check
       - run: stellar contract build
+      - name: Committed TypeScript bindings are up to date
+        run: |
+          scripts/gen-bindings.sh
+          git diff --exit-code -- bindings/typescript || { echo "::error::bindings/typescript is stale: run scripts/gen-bindings.sh and commit"; exit 1; }
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo test --workspace

@@ -4,3 +4,5 @@
 .env.*
 !.env.example
 .stellar/
+/bindings/typescript/dist/
+/bindings/typescript/node_modules/
