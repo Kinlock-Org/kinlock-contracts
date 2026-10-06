@@ -129,37 +129,133 @@ export interface TrancheInput {
 }
 
 export const Errors = {
+  /**
+   * NotInitialized: the contract has no configuration (it was not initialized).
+   */
   2: {message:"NotInitialized"},
+  /**
+   * NotAttester: the caller is not on the attester roster.
+   */
   3: {message:"NotAttester"},
+  /**
+   * NotVouchingAttester: only the payee's vouching attester (still on the roster), or the admin where allowed, can do this.
+   */
   4: {message:"NotVouchingAttester"},
+  /**
+   * InvalidCap: caps must be at least the minimum lock amount, and the per-lock cap can't exceed the global cap.
+   */
   5: {message:"InvalidCap"},
+  /**
+   * PayeeAlreadyExists: a payee with this ID is already registered.
+   */
   10: {message:"PayeeAlreadyExists"},
+  /**
+   * PayeeNotFound: no payee is registered with this ID.
+   */
   11: {message:"PayeeNotFound"},
+  /**
+   * PayeeNotActive: the payee is suspended or revoked.
+   */
   12: {message:"PayeeNotActive"},
+  /**
+   * InvalidStatusTransition: that status change isn't allowed (Revoked is final; the status must change).
+   */
   13: {message:"InvalidStatusTransition"},
+  /**
+   * PayoutUnchanged: the new payout address is the same as the current one.
+   */
   14: {message:"PayoutUnchanged"},
+  /**
+   * PayeeRevoked: the payee is revoked, so its payout can't be updated.
+   */
   15: {message:"PayeeRevoked"},
+  /**
+   * InvalidPayout: the payout address can't be the Kinlock contract itself.
+   */
   16: {message:"InvalidPayout"},
+  /**
+   * PausedNewLocks: new locks are paused; existing locks still work.
+   */
   20: {message:"PausedNewLocks"},
+  /**
+   * TokenNotAllowed: this token isn't on the allowlist.
+   */
   21: {message:"TokenNotAllowed"},
+  /**
+   * AmountBelowMinimum: the total is below the minimum lock amount.
+   */
   22: {message:"AmountBelowMinimum"},
+  /**
+   * AmountAboveLockCap: the total is above the per-lock cap.
+   */
   23: {message:"AmountAboveLockCap"},
+  /**
+   * GlobalCapExceeded: this lock would take the total locked above the global cap.
+   */
   24: {message:"GlobalCapExceeded"},
+  /**
+   * InvalidTrancheCount: a lock needs between 1 and 12 tranches.
+   */
   25: {message:"InvalidTrancheCount"},
+  /**
+   * InvalidTrancheAmount: every tranche amount must be greater than zero.
+   */
   26: {message:"InvalidTrancheAmount"},
+  /**
+   * UnlockAfterExpiry: a tranche can't unlock after the lock expires.
+   */
   28: {message:"UnlockAfterExpiry"},
+  /**
+   * UnlockOutOfOrder: tranche unlock times must not go backwards.
+   */
   29: {message:"UnlockOutOfOrder"},
+  /**
+   * ExpiryTooSoon: the lock must expire at least one hour from now.
+   */
   30: {message:"ExpiryTooSoon"},
+  /**
+   * ExpiryTooFar: the lock must expire within the maximum lock duration (149 days).
+   */
   31: {message:"ExpiryTooFar"},
+  /**
+   * SenderIsPayout: the sender can't be the payee's payout address.
+   */
   32: {message:"SenderIsPayout"},
+  /**
+   * LockTtlTooLong: the network can't keep this lock in storage until expiry plus the refund grace.
+   */
   33: {message:"LockTtlTooLong"},
+  /**
+   * LockNotFound: no lock exists with this ID.
+   */
   40: {message:"LockNotFound"},
+  /**
+   * LockNotOpen: the lock is already completed, refunded, or declined.
+   */
   41: {message:"LockNotOpen"},
+  /**
+   * TrancheIndexOutOfRange: this lock has no tranche at that index.
+   */
   42: {message:"TrancheIndexOutOfRange"},
+  /**
+   * TrancheAlreadyReleased: this tranche has already been released.
+   */
   43: {message:"TrancheAlreadyReleased"},
+  /**
+   * TrancheNotUnlocked: this tranche isn't unlocked yet.
+   */
   44: {message:"TrancheNotUnlocked"},
+  /**
+   * LockExpired: the lock has expired, so it can't be released; the sender can refund it.
+   */
   45: {message:"LockExpired"},
+  /**
+   * RefundNotAllowed: a refund is allowed only after expiry, or if the payee is revoked or suspended past the grace period.
+   */
   46: {message:"RefundNotAllowed"},
+  /**
+   * Overflow: an amount calculation overflowed.
+   */
   50: {message:"Overflow"}
 }
 
@@ -302,7 +398,7 @@ export class Client extends ContractClient {
         "AAAAAgAAADdBUFBFTkQtT05MWS4gQWN0aXZlIOKHhCBTdXNwZW5kZWQ7IFJldm9rZWQgaXMgdGVybWluYWwuAAAAAAAAAAALUGF5ZWVTdGF0dXMAAAAAAwAAAAAAAAAAAAAABkFjdGl2ZQAAAAAAAAAAAAAAAAAJU3VzcGVuZGVkAAAAAAAAAAAAAAAAAAAHUmV2b2tlZAA=",
         "AAAAAgAAAEdXaHkgYSByZWZ1bmQgd2FzIGFsbG93ZWQuIENhcnJpZWQgaW4gdGhlIGBSZWZ1bmRlZGAgZXZlbnQuIEFQUEVORC1PTkxZLgAAAAAAAAAADFJlZnVuZFJlYXNvbgAAAAMAAAAAAAAAAAAAAAdFeHBpcmVkAAAAAAAAAAAAAAAAB1Jldm9rZWQAAAAAAAAAAAAAAAAQU3VzcGVuZGVkVGltZW91dA==",
         "AAAAAQAAAKtDYWxsZXItc3VwcGxpZWQgdHJhbmNoZSBzY2hlZHVsZSBmb3IgYGNyZWF0ZV9sb2NrYCAobm8gYHJlbGVhc2VkYCBmbGFnIHRvIGZvcmdlKS4KU2NhZmZvbGQgYWRkaXRpb246IGBBUkNISVRFQ1RVUkUubWRgIMKnNC4zIG9ubHkgc2F5cyAidHJhbmNoZXMiOyBjb25maXJtIGluIE0xLTA1IHJldmlldy4AAAAAAAAAAAxUcmFuY2hlSW5wdXQAAAACAAAAAAAAAAZhbW91bnQAAAAAAAsAAAAAAAAACXVubG9ja19hdAAAAAAAAAY=",
-        "AAAABAAAAAAAAAAAAAAABUVycm9yAAAAAAAAIAAAAAAAAAAOTm90SW5pdGlhbGl6ZWQAAAAAAAIAAAAAAAAAC05vdEF0dGVzdGVyAAAAAAMAAAAAAAAAE05vdFZvdWNoaW5nQXR0ZXN0ZXIAAAAABAAAAAAAAAAKSW52YWxpZENhcAAAAAAABQAAAAAAAAASUGF5ZWVBbHJlYWR5RXhpc3RzAAAAAAAKAAAAAAAAAA1QYXllZU5vdEZvdW5kAAAAAAAACwAAAAAAAAAOUGF5ZWVOb3RBY3RpdmUAAAAAAAwAAAAAAAAAF0ludmFsaWRTdGF0dXNUcmFuc2l0aW9uAAAAAA0AAAAAAAAAD1BheW91dFVuY2hhbmdlZAAAAAAOAAAAAAAAAAxQYXllZVJldm9rZWQAAAAPAAAAAAAAAA1JbnZhbGlkUGF5b3V0AAAAAAAAEAAAAAAAAAAOUGF1c2VkTmV3TG9ja3MAAAAAABQAAAAAAAAAD1Rva2VuTm90QWxsb3dlZAAAAAAVAAAAAAAAABJBbW91bnRCZWxvd01pbmltdW0AAAAAABYAAAAAAAAAEkFtb3VudEFib3ZlTG9ja0NhcAAAAAAAFwAAAAAAAAARR2xvYmFsQ2FwRXhjZWVkZWQAAAAAAAAYAAAAAAAAABNJbnZhbGlkVHJhbmNoZUNvdW50AAAAABkAAAAAAAAAFEludmFsaWRUcmFuY2hlQW1vdW50AAAAGgAAAAAAAAARVW5sb2NrQWZ0ZXJFeHBpcnkAAAAAAAAcAAAAAAAAABBVbmxvY2tPdXRPZk9yZGVyAAAAHQAAAAAAAAANRXhwaXJ5VG9vU29vbgAAAAAAAB4AAAAAAAAADEV4cGlyeVRvb0ZhcgAAAB8AAAAAAAAADlNlbmRlcklzUGF5b3V0AAAAAAAgAAAAAAAAAA5Mb2NrVHRsVG9vTG9uZwAAAAAAIQAAAAAAAAAMTG9ja05vdEZvdW5kAAAAKAAAAAAAAAALTG9ja05vdE9wZW4AAAAAKQAAAAAAAAAWVHJhbmNoZUluZGV4T3V0T2ZSYW5nZQAAAAAAKgAAAAAAAAAWVHJhbmNoZUFscmVhZHlSZWxlYXNlZAAAAAAAKwAAAAAAAAASVHJhbmNoZU5vdFVubG9ja2VkAAAAAAAsAAAAAAAAAAtMb2NrRXhwaXJlZAAAAAAtAAAAAAAAABBSZWZ1bmROb3RBbGxvd2VkAAAALgAAAAAAAAAIT3ZlcmZsb3cAAAAy",
+        "AAAABAAAAAAAAAAAAAAABUVycm9yAAAAAAAAIAAAAEtOb3RJbml0aWFsaXplZDogdGhlIGNvbnRyYWN0IGhhcyBubyBjb25maWd1cmF0aW9uIChpdCB3YXMgbm90IGluaXRpYWxpemVkKS4AAAAADk5vdEluaXRpYWxpemVkAAAAAAACAAAANk5vdEF0dGVzdGVyOiB0aGUgY2FsbGVyIGlzIG5vdCBvbiB0aGUgYXR0ZXN0ZXIgcm9zdGVyLgAAAAAAC05vdEF0dGVzdGVyAAAAAAMAAAB3Tm90Vm91Y2hpbmdBdHRlc3Rlcjogb25seSB0aGUgcGF5ZWUncyB2b3VjaGluZyBhdHRlc3RlciAoc3RpbGwgb24gdGhlIHJvc3RlciksIG9yIHRoZSBhZG1pbiB3aGVyZSBhbGxvd2VkLCBjYW4gZG8gdGhpcy4AAAAAE05vdFZvdWNoaW5nQXR0ZXN0ZXIAAAAABAAAAGxJbnZhbGlkQ2FwOiBjYXBzIG11c3QgYmUgYXQgbGVhc3QgdGhlIG1pbmltdW0gbG9jayBhbW91bnQsIGFuZCB0aGUgcGVyLWxvY2sgY2FwIGNhbid0IGV4Y2VlZCB0aGUgZ2xvYmFsIGNhcC4AAAAKSW52YWxpZENhcAAAAAAABQAAAD9QYXllZUFscmVhZHlFeGlzdHM6IGEgcGF5ZWUgd2l0aCB0aGlzIElEIGlzIGFscmVhZHkgcmVnaXN0ZXJlZC4AAAAAElBheWVlQWxyZWFkeUV4aXN0cwAAAAAACgAAADNQYXllZU5vdEZvdW5kOiBubyBwYXllZSBpcyByZWdpc3RlcmVkIHdpdGggdGhpcyBJRC4AAAAADVBheWVlTm90Rm91bmQAAAAAAAALAAAAMlBheWVlTm90QWN0aXZlOiB0aGUgcGF5ZWUgaXMgc3VzcGVuZGVkIG9yIHJldm9rZWQuAAAAAAAOUGF5ZWVOb3RBY3RpdmUAAAAAAAwAAABlSW52YWxpZFN0YXR1c1RyYW5zaXRpb246IHRoYXQgc3RhdHVzIGNoYW5nZSBpc24ndCBhbGxvd2VkIChSZXZva2VkIGlzIGZpbmFsOyB0aGUgc3RhdHVzIG11c3QgY2hhbmdlKS4AAAAAAAAXSW52YWxpZFN0YXR1c1RyYW5zaXRpb24AAAAADQAAAEdQYXlvdXRVbmNoYW5nZWQ6IHRoZSBuZXcgcGF5b3V0IGFkZHJlc3MgaXMgdGhlIHNhbWUgYXMgdGhlIGN1cnJlbnQgb25lLgAAAAAPUGF5b3V0VW5jaGFuZ2VkAAAAAA4AAABDUGF5ZWVSZXZva2VkOiB0aGUgcGF5ZWUgaXMgcmV2b2tlZCwgc28gaXRzIHBheW91dCBjYW4ndCBiZSB1cGRhdGVkLgAAAAAMUGF5ZWVSZXZva2VkAAAADwAAAEdJbnZhbGlkUGF5b3V0OiB0aGUgcGF5b3V0IGFkZHJlc3MgY2FuJ3QgYmUgdGhlIEtpbmxvY2sgY29udHJhY3QgaXRzZWxmLgAAAAANSW52YWxpZFBheW91dAAAAAAAABAAAABAUGF1c2VkTmV3TG9ja3M6IG5ldyBsb2NrcyBhcmUgcGF1c2VkOyBleGlzdGluZyBsb2NrcyBzdGlsbCB3b3JrLgAAAA5QYXVzZWROZXdMb2NrcwAAAAAAFAAAADNUb2tlbk5vdEFsbG93ZWQ6IHRoaXMgdG9rZW4gaXNuJ3Qgb24gdGhlIGFsbG93bGlzdC4AAAAAD1Rva2VuTm90QWxsb3dlZAAAAAAVAAAAP0Ftb3VudEJlbG93TWluaW11bTogdGhlIHRvdGFsIGlzIGJlbG93IHRoZSBtaW5pbXVtIGxvY2sgYW1vdW50LgAAAAASQW1vdW50QmVsb3dNaW5pbXVtAAAAAAAWAAAAOEFtb3VudEFib3ZlTG9ja0NhcDogdGhlIHRvdGFsIGlzIGFib3ZlIHRoZSBwZXItbG9jayBjYXAuAAAAEkFtb3VudEFib3ZlTG9ja0NhcAAAAAAAFwAAAE5HbG9iYWxDYXBFeGNlZWRlZDogdGhpcyBsb2NrIHdvdWxkIHRha2UgdGhlIHRvdGFsIGxvY2tlZCBhYm92ZSB0aGUgZ2xvYmFsIGNhcC4AAAAAABFHbG9iYWxDYXBFeGNlZWRlZAAAAAAAABgAAAA8SW52YWxpZFRyYW5jaGVDb3VudDogYSBsb2NrIG5lZWRzIGJldHdlZW4gMSBhbmQgMTIgdHJhbmNoZXMuAAAAE0ludmFsaWRUcmFuY2hlQ291bnQAAAAAGQAAAEVJbnZhbGlkVHJhbmNoZUFtb3VudDogZXZlcnkgdHJhbmNoZSBhbW91bnQgbXVzdCBiZSBncmVhdGVyIHRoYW4gemVyby4AAAAAAAAUSW52YWxpZFRyYW5jaGVBbW91bnQAAAAaAAAAQVVubG9ja0FmdGVyRXhwaXJ5OiBhIHRyYW5jaGUgY2FuJ3QgdW5sb2NrIGFmdGVyIHRoZSBsb2NrIGV4cGlyZXMuAAAAAAAAEVVubG9ja0FmdGVyRXhwaXJ5AAAAAAAAHAAAAD1VbmxvY2tPdXRPZk9yZGVyOiB0cmFuY2hlIHVubG9jayB0aW1lcyBtdXN0IG5vdCBnbyBiYWNrd2FyZHMuAAAAAAAAEFVubG9ja091dE9mT3JkZXIAAAAdAAAAP0V4cGlyeVRvb1Nvb246IHRoZSBsb2NrIG11c3QgZXhwaXJlIGF0IGxlYXN0IG9uZSBob3VyIGZyb20gbm93LgAAAAANRXhwaXJ5VG9vU29vbgAAAAAAAB4AAABPRXhwaXJ5VG9vRmFyOiB0aGUgbG9jayBtdXN0IGV4cGlyZSB3aXRoaW4gdGhlIG1heGltdW0gbG9jayBkdXJhdGlvbiAoMTQ5IGRheXMpLgAAAAAMRXhwaXJ5VG9vRmFyAAAAHwAAAD9TZW5kZXJJc1BheW91dDogdGhlIHNlbmRlciBjYW4ndCBiZSB0aGUgcGF5ZWUncyBwYXlvdXQgYWRkcmVzcy4AAAAADlNlbmRlcklzUGF5b3V0AAAAAAAgAAAAX0xvY2tUdGxUb29Mb25nOiB0aGUgbmV0d29yayBjYW4ndCBrZWVwIHRoaXMgbG9jayBpbiBzdG9yYWdlIHVudGlsIGV4cGlyeSBwbHVzIHRoZSByZWZ1bmQgZ3JhY2UuAAAAAA5Mb2NrVHRsVG9vTG9uZwAAAAAAIQAAACpMb2NrTm90Rm91bmQ6IG5vIGxvY2sgZXhpc3RzIHdpdGggdGhpcyBJRC4AAAAAAAxMb2NrTm90Rm91bmQAAAAoAAAAQkxvY2tOb3RPcGVuOiB0aGUgbG9jayBpcyBhbHJlYWR5IGNvbXBsZXRlZCwgcmVmdW5kZWQsIG9yIGRlY2xpbmVkLgAAAAAAC0xvY2tOb3RPcGVuAAAAACkAAAA/VHJhbmNoZUluZGV4T3V0T2ZSYW5nZTogdGhpcyBsb2NrIGhhcyBubyB0cmFuY2hlIGF0IHRoYXQgaW5kZXguAAAAABZUcmFuY2hlSW5kZXhPdXRPZlJhbmdlAAAAAAAqAAAAP1RyYW5jaGVBbHJlYWR5UmVsZWFzZWQ6IHRoaXMgdHJhbmNoZSBoYXMgYWxyZWFkeSBiZWVuIHJlbGVhc2VkLgAAAAAWVHJhbmNoZUFscmVhZHlSZWxlYXNlZAAAAAAAKwAAADRUcmFuY2hlTm90VW5sb2NrZWQ6IHRoaXMgdHJhbmNoZSBpc24ndCB1bmxvY2tlZCB5ZXQuAAAAElRyYW5jaGVOb3RVbmxvY2tlZAAAAAAALAAAAFVMb2NrRXhwaXJlZDogdGhlIGxvY2sgaGFzIGV4cGlyZWQsIHNvIGl0IGNhbid0IGJlIHJlbGVhc2VkOyB0aGUgc2VuZGVyIGNhbiByZWZ1bmQgaXQuAAAAAAAAC0xvY2tFeHBpcmVkAAAAAC0AAAB3UmVmdW5kTm90QWxsb3dlZDogYSByZWZ1bmQgaXMgYWxsb3dlZCBvbmx5IGFmdGVyIGV4cGlyeSwgb3IgaWYgdGhlIHBheWVlIGlzIHJldm9rZWQgb3Igc3VzcGVuZGVkIHBhc3QgdGhlIGdyYWNlIHBlcmlvZC4AAAAAEFJlZnVuZE5vdEFsbG93ZWQAAAAuAAAAK092ZXJmbG93OiBhbiBhbW91bnQgY2FsY3VsYXRpb24gb3ZlcmZsb3dlZC4AAAAACE92ZXJmbG93AAAAMg==",
         "AAAABQAAAAAAAAAAAAAACERlY2xpbmVkAAAAAQAAAAhkZWNsaW5lZAAAAAMAAAAAAAAAAmlkAAAAAAAGAAAAAQAAAAAAAAAOc2NoZW1hX3ZlcnNpb24AAAAAAAQAAAAAAAAAAAAAAAZhbW91bnQAAAAAAAsAAAAAAAAAAg==",
         "AAAABQAAAAAAAAAAAAAACFJlZnVuZGVkAAAAAQAAAAhyZWZ1bmRlZAAAAAQAAAAAAAAAAmlkAAAAAAAGAAAAAQAAAAAAAAAOc2NoZW1hX3ZlcnNpb24AAAAAAAQAAAAAAAAAAAAAAAZhbW91bnQAAAAAAAsAAAAAAAAAAAAAAAZyZWFzb24AAAAAB9AAAAAMUmVmdW5kUmVhc29uAAAAAAAAAAI=",
         "AAAABQAAAAAAAAAAAAAACFJlbGVhc2VkAAAAAQAAAAhyZWxlYXNlZAAAAAUAAAAAAAAAAmlkAAAAAAAGAAAAAQAAAAAAAAAOc2NoZW1hX3ZlcnNpb24AAAAAAAQAAAAAAAAAAAAAAANpZHgAAAAABAAAAAAAAAAAAAAABmFtb3VudAAAAAAACwAAAAAAAAAAAAAABnBheW91dAAAAAAAEwAAAAAAAAAC",
