@@ -1,5 +1,9 @@
-//! Contract errors. DRAFT: variant set to be confirmed in M1-02 review.
-//! Codes are part of the public interface: never renumber; add new codes at the end.
+//! Contract errors. Codes are part of the public interface: never renumber or reuse a code;
+//! add new codes at the end of their group.
+//!
+//! Retired before any deployment (never returned, so never published):
+//! 1 = AlreadyInitialized (initialization moved into the constructor, ADR-0018) and
+//! 27 = TrancheSumMismatch (`total` is now derived from the tranches). Don't reuse 1 or 27.
 
 use soroban_sdk::contracterror;
 
@@ -8,7 +12,6 @@ use soroban_sdk::contracterror;
 #[repr(u32)]
 pub enum Error {
     // Setup and admin
-    AlreadyInitialized = 1,
     NotInitialized = 2,
     NotAttester = 3,
     NotVouchingAttester = 4,
@@ -29,7 +32,6 @@ pub enum Error {
     GlobalCapExceeded = 24,
     InvalidTrancheCount = 25,
     InvalidTrancheAmount = 26,
-    TrancheSumMismatch = 27,
     UnlockAfterExpiry = 28,
     UnlockOutOfOrder = 29,
     ExpiryTooSoon = 30,

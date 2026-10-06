@@ -105,3 +105,17 @@ fn constructor_writes_storage_version() {
         .as_contract(&s.client.address, || storage::read_storage_version(&s.env));
     assert_eq!(v, Some(STORAGE_VERSION));
 }
+
+/// Every entry point that needs the config fails cleanly if it's missing.
+#[test]
+fn missing_config_fails_with_not_initialized() {
+    let s = Setup::new();
+    s.env.as_contract(&s.client.address, || {
+        s.env.storage().instance().remove(&storage::DataKey::Config)
+    });
+    let a = Address::generate(&s.env);
+    assert_eq!(
+        s.client.try_add_attester(&a),
+        Err(Ok(Error::NotInitialized))
+    );
+}
