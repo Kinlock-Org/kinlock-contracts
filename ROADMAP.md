@@ -127,7 +127,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 
 | Phase | Total | DONE | IN PROGRESS | TODO | BLOCKED | DEFERRED | DROPPED | Readiness |
 |---|---|---|---|---|---|---|---|---|
-| 0 Foundations | 19 | 7 | 4 | 8 | 0 | 0 | 0 | 37% |
+| 0 Foundations | 19 | 11 | 1 | 7 | 0 | 0 | 0 | 58% |
 | 1 M0 Validate | 17 | 0 | 1 | 16 | 0 | 0 | 0 | 0% |
 | 2 Contract + registry | 36 | 16 | 5 | 15 | 0 | 0 | 0 | 44% |
 | 3 SDK + indexer | 19 | 0 | 2 | 17 | 0 | 0 | 0 | 0% |
@@ -137,9 +137,9 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 7 Hardening | 26 | 0 | 0 | 26 | 0 | 0 | 0 | 0% |
 | 8 Launch | 8 | 0 | 0 | 8 | 0 | 0 | 0 | 0% |
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
-| 10 Wave + community | 8 | 0 | 1 | 7 | 0 | 0 | 0 | 0% |
+| 10 Wave + community | 8 | 1 | 0 | 7 | 0 | 0 | 0 | 13% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **199** | **23** | **15** | **136** | **0** | **25** | **0** | **13%** |
+| **All** | **199** | **28** | **11** | **135** | **0** | **25** | **0** | **16%** |
 
 ---
 
@@ -157,16 +157,16 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | F-05 | Write `CLAUDE.md` | org | P0 | DONE | F-04 | Imports `AGENTS.md`; checklists present |
 | F-06 | Write `project_structure.md` | org | P0 | DONE | F-02 | Repo layouts and ownership documented |
 | F-07 | Write `ROADMAP.md` and the update rule | org | P0 | DONE | F-04 | This file; rule added to instruction files and docs |
-| F-08 | Confirm org name availability and create the GitHub org (`kinlock` or backup) | org | P0 | TODO | — | Org exists; owners set |
+| F-08 | Confirm org name availability and create the GitHub org (`kinlock` or backup) | org | P0 | DONE | — | Org exists; owners set |
 | F-09 | Create org `.github` repo: profile README, CoC, CONTRIBUTING, SECURITY, SUPPORT, canonical `docs/`, `templates/` | org | P0 | IN PROGRESS | F-08 | Repo public; docs and templates committed |
 | F-10 | Decide license (org-wide) | org | P0 | TODO | F-08 | ADR written; `LICENSE` template ready |
 | F-11 | Decide npm scope and publish rights | org | P0 | TODO | F-08 | Scope reserved; publish tokens/process documented |
 | F-12 | Create GitHub teams: maintainers, contract-reviewers, attesters | org | P0 | TODO | F-08 | Teams exist; handles match `CODEOWNERS` |
 | F-13 | Create label set across repos (`security-sensitive`, `good first issue`, `wave`, `area:*`, `blocked:m0`, `deferred`) | org | P0 | TODO | F-08 | Labels applied via script |
-| F-14 | Write `scripts/sync-docs` and the `docs-in-sync` CI job | org | P0 | IN PROGRESS | F-09 | CI fails when a vendored copy drifts |
-| F-15 | Write `roadmap-check` CI job and `scripts/roadmap-progress` and `scripts/roadmap-merge` | org | P0 | IN PROGRESS | F-09 | CI fails PRs without roadmap update; scripts produce correct counts and merges |
+| F-14 | Write `scripts/sync-docs` and the `docs-in-sync` CI job | org | P0 | DONE | F-09 | CI fails when a vendored copy drifts |
+| F-15 | Write `roadmap-check` CI job and `scripts/roadmap-progress` and `scripts/roadmap-merge` | org | P0 | DONE | F-09 | CI fails PRs without roadmap update; scripts produce correct counts and merges |
 | F-16 | Define branch protection and repo settings (required reviews, required checks, no force-push to `main`) | org | P0 | TODO | F-12 | Applied to all repos; documented |
-| F-17 | Create PR template and issue templates (bug, feature, wave-task) with Roadmap section | org | P0 | IN PROGRESS | F-09 | Templates live in org `.github` and each repo |
+| F-17 | Create PR template and issue templates (bug, feature, wave-task) with Roadmap section | org | P0 | DONE | F-09 | Templates live in org `.github` and each repo |
 | F-18 | Cross-doc consistency review after any M0-driven change | org | P1 | TODO | M0-12 | All docs agree; ADR index current |
 | F-19 | Reconcile docs with scaffold findings: Next.js 16 renamed `middleware.ts` to `proxy.ts`; contract `tests/` must live in `contracts/kinlock/tests/` (a virtual Cargo workspace root can't hold integration tests); GitHub org is `Kinlock-Org`, not `kinlock`; request-link helpers are not in the SDK public API list; `TrancheInput` type added for `create_lock`; accept ADR-0017 and add it to the ADR indexes | org | P1 | TODO | — | Docs and scaffold agree; ADR-0017 accepted or rejected |
 
@@ -483,7 +483,7 @@ Resolve each with an ADR and link it here. Move resolved rows to the bottom with
 |---|---|---|---|---|---|---|
 | W-01 | Prepare Wave applications per repo (description, README, issues), within program limits | org | P1 | TODO | M0-10 | Applications submitted for the four active repos |
 | W-02 | Seed issues: tests and docs in contracts (security-aware), registry tooling, app UI, SDK, indexer fixtures | all | P1 | TODO | M1-01 | Backlog exists; security-sensitive issues excluded from open contribution |
-| W-03 | Org and repo `CONTRIBUTING.md` including the roadmap rule | org | P0 | IN PROGRESS | F-09 | Rule stated prominently |
+| W-03 | Org and repo `CONTRIBUTING.md` including the roadmap rule | org | P0 | DONE | F-09 | Rule stated prominently |
 | W-04 | Contributor quick-start tested on a clean machine for each repo | all | P1 | TODO | M3-01 | New contributor runs tests in under 15 minutes |
 | W-05 | Issue sizing guide aligned with current program guidelines | org | P1 | TODO | M0-10 | Guide published |
 | W-06 | PR review SLAs and triage routine | org | P1 | TODO | F-12 | Documented; rota exists |
@@ -523,6 +523,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-10-06 | `chore/roadmap-merge` | org | DONE: F-08, F-14, F-15, F-17, W-03 | Added `scripts/roadmap-merge` (three-way merge against the last merged copy; conflicts reported, never guessed) and merged every repo's ROADMAP.md into the canonical copy, then synced it to all repos. Verified: org exists with an owner; `docs-in-sync` and `roadmap-check` fail and pass correctly; templates and the CONTRIBUTING rule are in every repo. F-09 stays IN PROGRESS (code of conduct is still a draft) |
 | 2026-10-06 | `chore/testnet-multisig-deploy` | contracts | DONE: M1-19 | Testnet contract `CCSHDQFRYFC3AHV5NE6ULQW6X2CMG5RPANBORDXJGSUD6UKECASJQBRI` with a 2-of-3 multisig admin (verified: one signature rejected `TxBadAuth`, two accepted), test attester added, Circle testnet USDC allowlisted. Adds `scripts/multisig-invoke.sh` and `deployments/testnet-setup.md`; vendored docs resynced (ADR-0020). Supersedes the single-key contract `CDIPDHSA…TLYL` |
 | 2026-10-06 | `feat/deploy-script` | contracts | DONE: M1-17 | `scripts/deploy.sh` (testnet/local, guarded mainnet, dry run, uploaded-hash check) and `scripts/gen-deployments-md.sh`. Deployed to testnet: `CDIPDHSAKP2MNANLYV6VRWVTWFJH3PQRHBRDBVMYNMRYKSR66JVPTLYL`, single-key admin `kinlock-testnet-deployer` (multisig admin, attesters, and testnet USDC remain M1-19) |
 | 2026-10-06 | `test/close-m1-11-m1-12` | contracts | DONE: M1-11, M1-12, M1-32 | Removed never-returned errors `AlreadyInitialized` (1) and `TrancheSumMismatch` (27), codes retired; every remaining error variant is now covered by a test. Upgrade tested with the real compiled WASM (admin auth asserted, state survives, intruder fails). CI installs stellar-cli 27.0.0 (checksum-verified) and builds the WASM before clippy and tests |
@@ -530,6 +531,8 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 | 2026-10-05 | `fix/max-lock-duration` | contracts | DONE: M1-33. DEC-07 resolved | `MAX_LOCK_DURATION` = 149 days: testnet `max_entry_ttl` is 3,110,400 ledgers and a contract can extend to one ledger less, so 150 + 30-day grace doesn't fit. Tests now run with the real network limit |
 | 2026-10-05 | `feat/vault` | contracts | DONE: M1-03, M1-04, M1-05, M1-06, M1-07, M1-08, M1-13, M1-31. IN PROGRESS: M1-09, M1-10, M1-11, M0-08. Added: M1-33, M1-34, M1-35, M1-36 | Vault: `create_lock`, `release`, `refund`, `decline`, `bump_lock`, `get_lock`; lock and payee TTL kept to `expires_at + TTL_GRACE` (`LockTtlTooLong` otherwise); `InvalidPayout`; `set_caps` sanity; storage version. 103 tests; 19 mutation checks caught; independent review: no critical/high. Testnet `max_entry_ttl` read as 3,110,400 ledgers (M0-08, M1-33). Vendored `docs/adr/` resynced with ADR-0018 and ADR-0019 |
 | 2026-10-05 | `feat/admin-registry` | contracts | IN PROGRESS: M1-03, M1-04, M1-12 (M1-02 stays IN PROGRESS). Added: M1-31, M1-32 | Admin functions (constructor replaces `init`), payee registry (`register_payee`, `set_status`, `update_payout`, `get_payee`), TTL extension for long-lived entries, new errors `InvalidCap`, `PayoutUnchanged`, `PayeeRevoked`; 42 unit, auth, event, and TTL tests; independent review findings addressed. Started ahead of G1 at the owner's request |
+| 2026-10-05 | `docs/adr-vault` | org | DEC-07 resolved (no row changes) | ADR-0020: vault validation and storage-lifetime rules (LockTtlTooLong, InvalidPayout, set_caps sanity, storage version); `MAX_LOCK_DURATION` = 149 days in ARCHITECTURE, ESSENTIALS, and PRD |
+| 2026-10-05 | `docs/adr-admin-registry` | org | no row changes | ADR-0018 (constructor initialization, explicit caller parameters) and ADR-0019 (removed attesters lose payee powers), recording decisions approved for `kinlock-contracts` `feat/admin-registry`. Doc text updates remain under F-19 |
 | 2026-10-05 | scaffold (requested by owner; branch `chore/scaffold` in each repo, uncommitted) | all | IN PROGRESS: F-09, F-14, F-15, F-17, W-03, M1-01, M1-02, M1-24, M1-29, M2-01, M2-11, M3-01, M3-23. Added: F-19, M1-30, DEC-22, DEC-23 | Scaffolded org `.github` (docs, 16 ADRs + proposed ADR-0017, templates, `sync-docs.sh`, `roadmap-progress`) and the contracts, registry, sdk, and app repos with data models and stubs. Done ahead of G1 at the owner's request. `kinlock-ramp` left untouched (conditional). Counts refreshed with `scripts/roadmap-progress` |
 | 2026-10-05 | scope change (requested by owner) | org | Edited: M0-01, M0-02, M0-05, M0-07, M1-27, M3-06, M3-16, H-11, D-03, D-14, DEC-10, DEC-11, §1 items 5 and 9. Added: M0-16, M0-17, M1-29, M2-19, M3-23, M3-24, H-25, H-26, P-07, L-08, D-16, DEC-19..21 | Product generalized from "abroad to Nigeria" to worldwide (market-by-market launch). Docs bumped to v0.3; country-agnostic-core rule added to `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE_ESSENTIALS.md`. §1 edited with the owner's approval |
 | 2026-10-05 | initial | org | F-01..F-07 | Roadmap created; docs v0.2 baseline recorded; update rule added to `AGENTS.md`, `CLAUDE.md`, `project_structure.md`, `PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md` |
