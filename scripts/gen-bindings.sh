@@ -15,7 +15,7 @@ stellar contract bindings typescript \
   --output-dir "$OUT" \
   --overwrite
 
-# Package metadata (ADR-0023): public npm package under @kinlock, built output only.
+# Package metadata (ADR-0026): @kinlock/contract, released as a GitHub Release tarball; built output only.
 # stellar-sdk is pinned to the version kinlock-sdk uses, so apps load a single copy.
 tmp="$(mktemp)"
 jq --arg version "$VERSION" '
