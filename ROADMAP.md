@@ -129,7 +129,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 12 | 2 | 5 | 0 | 0 | 0 | 63% |
 | 1 M0 Validate | 17 | 0 | 1 | 16 | 0 | 0 | 0 | 0% |
-| 2 Contract + registry | 36 | 16 | 6 | 14 | 0 | 0 | 0 | 44% |
+| 2 Contract + registry | 36 | 17 | 5 | 14 | 0 | 0 | 0 | 47% |
 | 3 SDK + indexer | 19 | 1 | 1 | 17 | 0 | 0 | 0 | 5% |
 | 4 App | 24 | 1 | 1 | 22 | 0 | 0 | 0 | 4% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 8 | 1 | 0 | 7 | 0 | 0 | 0 | 13% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **199** | **31** | **11** | **132** | **0** | **25** | **0** | **18%** |
+| **All** | **199** | **32** | **10** | **132** | **0** | **25** | **0** | **18%** |
 
 ---
 
@@ -227,7 +227,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-15 | Integration tests: C-address sender and payee, missing/unauthorized trustline, partial release then refund/decline, allowlist removal with open locks | contracts | P0 | TODO | M1-11 | Pass on local network |
 | M1-16 | Budget tests with `soroban-budget-assert`; compare local estimates to testnet simulation | contracts | P0 | TODO | M1-11 | Budgets recorded; divergence measured and documented |
 | M1-17 | `deploy.sh` (testnet default, mainnet guarded), `deployments/testnet.json`, generated `DEPLOYMENTS.md` | contracts | P0 | DONE | M1-11 | Deploys to testnet; mainnet requires flag and confirmation |
-| M1-18 | Generate TS bindings and publish pipeline | contracts | P0 | IN PROGRESS | M1-17, F-11 | Package published on tag; SDK can consume |
+| M1-18 | Generate TS bindings and publish pipeline | contracts | P0 | DONE | M1-17, F-11 | Package published on tag; SDK can consume |
 | M1-19 | Deploy to testnet with a test multisig admin; add test attesters and testnet USDC | contracts | P0 | DONE | M1-17 | Contract ID recorded in `DEPLOYMENTS.md` |
 | M1-20 | Upgrade/migration test against a snapshot of testnet state | contracts | P1 | TODO | M1-19 | Invariants hold after upgrade |
 | M1-21 | Contract `README`, `SECURITY.md`, and threat-model doc linked to invariants | contracts | P1 | TODO | M1-14 | Reviewer can map each threat to a control |
@@ -523,6 +523,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-10-07 | kinlock-contracts docs/m1-18-done | contracts | M1-18 DONE | `@kinlock/contract` 0.1.0 released on tag `bindings-v0.1.0` (GitHub Release, ADR-0026); installs from its URL and the SDK consumes it (kinlock-sdk#15, testnet run passed). Docs synced (ADR-0026 correction, ADR-0027) |
 | 2026-10-07 | kinlock-contracts chore/bindings-github-release | contracts | M1-18 IN PROGRESS (unchanged), DEC-03 amended | `bindings` workflow attaches the packed `@kinlock/contract` tarball to a GitHub Release on `bindings-vX.Y.Z` (ADR-0026) instead of publishing to npm; no publish secret; docs synced (ADR-0024..0026, AGENTS.md) |
 | 2026-10-06 | `fix/bindings-errors-sdk17` | contracts | no row changes (M1-18 stays IN PROGRESS) | Every contract error variant now has a doc comment (`Name: explanation`); stellar-sdk takes client error messages from these, so they were empty before. Bindings pinned to `@stellar/stellar-sdk` 17.2.1 (same as kinlock-sdk). Verified live on testnet: errors decode as e.g. "PayeeNotFound: no payee is registered with this ID." |
 | 2026-10-06 | `feat/ts-bindings` | contracts | IN PROGRESS: M1-18 | Generated TypeScript bindings committed as `@kinlock/contract` 0.1.0; `gen-bindings.sh` sets package metadata; tag-triggered publish workflow (`bindings-vX.Y.Z`, npm provenance) and a CI check that committed bindings match a fresh generation. Not yet published: waits on the npm org and `NPM_TOKEN` (F-11) |
