@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Last updated** | 2026-10-06 |
+| **Last updated** | 2026-10-07 |
 | **Docs baseline** | v0.3, worldwide scope (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`, `AGENTS.md`, `CLAUDE.md`, `project_structure.md`) |
 | **Current phase** | Phase 0 (Foundations) → starting Phase 1 (M0 Validate) |
 | **Readiness** | See [§3](#3-progress-snapshot) |
@@ -342,7 +342,7 @@ Resolve each with an ADR and link it here. Move resolved rows to the bottom with
 |---|---|---|---|
 | DEC-01 | Org name final (`kinlock` or backup) | F-08 | Open |
 | DEC-02 | License | F-10 | Resolved 2026-10-06: Apache-2.0 (ADR-0022) |
-| DEC-03 | npm scope and publish rights | F-11 | Resolved 2026-10-06: public npm, scope @kinlock, CI publishes on tag (ADR-0023) |
+| DEC-03 | npm scope and publish rights | F-11 | Resolved 2026-10-06: public npm, scope @kinlock, CI publishes on tag (ADR-0023). Superseded 2026-10-07: CI attaches package tarballs to GitHub Releases on tag; names stay @kinlock/... ([ADR-0026](docs/adr/0026-github-release-packages.md)) |
 | DEC-04 | Canonical docs location (org `.github`, recommended) | F-09 | Open |
 | DEC-05 | Commit Soroban `test_snapshots/` (default: ignore) | M1-01 | Open |
 | DEC-06 | Package manager (default: pnpm) | M2-01 | Open |
@@ -523,6 +523,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-10-07 | kinlock-contracts chore/bindings-github-release | contracts | M1-18 IN PROGRESS (unchanged), DEC-03 amended | `bindings` workflow attaches the packed `@kinlock/contract` tarball to a GitHub Release on `bindings-vX.Y.Z` (ADR-0026) instead of publishing to npm; no publish secret; docs synced (ADR-0024..0026, AGENTS.md) |
 | 2026-10-06 | `fix/bindings-errors-sdk17` | contracts | no row changes (M1-18 stays IN PROGRESS) | Every contract error variant now has a doc comment (`Name: explanation`); stellar-sdk takes client error messages from these, so they were empty before. Bindings pinned to `@stellar/stellar-sdk` 17.2.1 (same as kinlock-sdk). Verified live on testnet: errors decode as e.g. "PayeeNotFound: no payee is registered with this ID." |
 | 2026-10-06 | `feat/ts-bindings` | contracts | IN PROGRESS: M1-18 | Generated TypeScript bindings committed as `@kinlock/contract` 0.1.0; `gen-bindings.sh` sets package metadata; tag-triggered publish workflow (`bindings-vX.Y.Z`, npm provenance) and a CI check that committed bindings match a fresh generation. Not yet published: waits on the npm org and `NPM_TOKEN` (F-11) |
 | 2026-10-06 | `chore/license-and-publishing` | org | DONE: F-10. IN PROGRESS: F-11. DEC-02, DEC-03 resolved | Apache-2.0 for every repo (ADR-0022, `LICENSE` + template); TypeScript packages publish to npm under `@kinlock` from CI on tag (ADR-0023). F-11 waits on an owner creating the npm org and the `NPM_TOKEN` secret. Canonical roadmap re-merged from all repos (picks up M2-01, M3-01) |

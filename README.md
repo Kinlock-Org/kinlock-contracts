@@ -21,7 +21,7 @@ STELLAR_ACCOUNT=<keystore identity name> KINLOCK_ADMIN=<admin address> scripts/d
 Defaults to testnet; `STELLAR_NETWORK=local` targets `scripts/localnet.sh`. Mainnet needs `KINLOCK_ALLOW_MAINNET=1` plus a typed confirmation. Each deploy writes `deployments/<network>.json` and regenerates `DEPLOYMENTS.md` (never edit either by hand). Current deployments: [`DEPLOYMENTS.md`](DEPLOYMENTS.md); testnet admin multisig and configuration: [`deployments/testnet-setup.md`](deployments/testnet-setup.md). Admin calls on testnet: `scripts/multisig-invoke.sh`.
 
 ## TypeScript bindings
-`bindings/typescript` holds the generated client for the contract, published to npm as `@kinlock/contract`. Never edit it by hand: change the contract, run `scripts/gen-bindings.sh`, and commit the result (CI fails on stale bindings). To release, bump the version with `scripts/gen-bindings.sh <x.y.z>`, merge, then push the tag `bindings-v<x.y.z>`; the `bindings` workflow publishes it (needs the `NPM_TOKEN` secret).
+`bindings/typescript` holds the generated client for the contract, released as `@kinlock/contract` (a `.tgz` attached to each `bindings-vX.Y.Z` GitHub Release, ADR-0026). Never edit it by hand: change the contract, run `scripts/gen-bindings.sh`, and commit the result (CI fails on stale bindings). To release, bump the version with `scripts/gen-bindings.sh <x.y.z>`, merge, then push the tag `bindings-v<x.y.z>`; the `bindings` workflow publishes it (needs the `NPM_TOKEN` secret).
 
 ## Read first
 - `docs/ARCHITECTURE_ESSENTIALS.md` (short; read at the start of every task)
