@@ -208,7 +208,7 @@ pnpm --filter indexer dev
 - TypeScript `strict`. No `any`. Validate all external input with **Zod** at boundaries (HTTP, RPC responses, env).
 - **Amounts are `bigint` in code, decimal strings in JSON, `NUMERIC(39,0)` in Postgres.** Never use `number` for money. Decimal formatting (7 decimals for USDC) lives only in the SDK's formatting helpers.
 - Validate Stellar addresses with the SDK's StrKey utilities.
-- SDK exposes: `createLock`, `release`, `refund`, `decline`, `getLock`, `verifyReceipt`, `buildClaimLink`, `parseClaimLink`, `preflight`, plus (ADR-0025) `toBaseUnits`, `fromBaseUnits`, `generateSalt`, `computeRefHash`, `buildRequestLink`, `parseRequestLink`. Don't add public API without approval.
+- SDK exposes: `createLock`, `release`, `refund`, `decline`, `getLock`, `verifyReceipt`, `buildClaimLink`, `parseClaimLink`, `preflight`, plus (ADR-0025) `toBaseUnits`, `fromBaseUnits`, `generateSalt`, `computeRefHash`, `buildRequestLink`, `parseRequestLink`, and (ADR-0030) `getPayee`. Don't add public API without approval.
 - `getLock` for action pages reads **chain state**. Indexer-backed reads are for lists only and must be labeled as such in the API.
 - `buildClaimLink` puts reference and salt in the **URL fragment**. Never log, persist, or transmit them.
 - Preflight covers: sender balance, payee Active, recent payout change (≤ 7 days), duplicate `ref_hash` for the payee, authorized USDC trustline on the payout account.
