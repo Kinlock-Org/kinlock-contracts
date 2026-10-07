@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Last updated** | 2026-10-07 (SCF open-source readiness fixes) |
+| **Last updated** | 2026-10-07 (M1-01 done; W-02 seed issues) |
 | **Docs baseline** | v0.3, worldwide scope (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`, `AGENTS.md`, `CLAUDE.md`, `project_structure.md`) |
 | **Current phase** | Phase 0 (Foundations) → starting Phase 1 (M0 Validate) |
 | **Readiness** | See [§3](#3-progress-snapshot) |
@@ -129,7 +129,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 12 | 2 | 5 | 0 | 0 | 0 | 63% |
 | 1 M0 Validate | 17 | 0 | 1 | 16 | 0 | 0 | 0 | 0% |
-| 2 Contract + registry | 37 | 18 | 5 | 14 | 0 | 0 | 0 | 49% |
+| 2 Contract + registry | 37 | 19 | 4 | 14 | 0 | 0 | 0 | 51% |
 | 3 SDK + indexer | 19 | 1 | 1 | 17 | 0 | 0 | 0 | 5% |
 | 4 App | 24 | 1 | 1 | 22 | 0 | 0 | 0 | 4% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 8 | 1 | 0 | 7 | 0 | 0 | 0 | 13% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **200** | **33** | **10** | **132** | **0** | **25** | **0** | **19%** |
+| **All** | **200** | **34** | **9** | **132** | **0** | **25** | **0** | **19%** |
 
 ---
 
@@ -210,7 +210,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 
 | ID | Task | Repo | Pri | Status | Depends on | Done when |
 |---|---|---|---|---|---|---|
-| M1-01 | Scaffold workspace: Cargo workspace, `rust-toolchain.toml`, empty modules, CI (fmt, clippy, test, build), `localnet.sh` | contracts | P0 | IN PROGRESS | G1 | CI green on empty skeleton; one-command local network |
+| M1-01 | Scaffold workspace: Cargo workspace, `rust-toolchain.toml`, empty modules, CI (fmt, clippy, test, build), `localnet.sh` | contracts | P0 | DONE | G1 | CI green on empty skeleton; one-command local network |
 | M1-02 | Implement `constants.rs`, `types.rs`, `errors.rs`, `events.rs`, `storage.rs` | contracts | P0 | IN PROGRESS | M1-01 | Match `ARCHITECTURE.md` §4; enums append-only; events carry `schema_version` |
 | M1-03 | Admin functions: `init`, attester add/remove, token add/remove, `set_paused_new_locks`, `set_caps`, `upgrade` | contracts | P0 | DONE | M1-02 | Auth tested; pause blocks only `create_lock` |
 | M1-04 | Registry: `register_payee`, `set_status`, `update_payout` | contracts | P0 | DONE | M1-02 | Status transitions enforced; payout update affects new locks only |
@@ -524,6 +524,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-10-07 | `docs/m1-01-done` | contracts | DONE: M1-01 | Verified CI green on `main` (fmt/clippy/test/build) and `scripts/localnet.sh` + `scripts/localnet-setup.sh` both present and merged (`chore/localnet-setup`, PR #14). `M1-01` formally depends on gate `G1` (not yet passed) — closing this row now, ahead of G1, follows the same precedent as the rest of Phase 2's work, done ahead of G1 at the owner's request. This unblocks `W-02` (seed issues), which depended on `M1-01` |
 | 2026-10-07 | `docs/scf-readiness-fixes` | contracts | no row changes (org rows W-09/F-12 tracked in `.github`) | Part of an org-wide SCF open-source readiness audit (see `.github` `docs/scf-readiness.md`): filled the unfilled `Copyright [yyyy] [name of copyright owner]` placeholder in `LICENSE` and added `ISSUE_TEMPLATE/config.yml` (GitHub's community-profile check was reporting `issue_template: false` despite templates existing) |
 | 2026-10-07 | `docs/readme-status-banner` | contracts | no row changes | README said "scaffold... features are not built," which is stale (vault/registry entry points are implemented and tested). Corrected the status banner to match current progress; supports org-level `W-01` Wave-readiness |
 | 2026-10-07 | kinlock-contracts chore/localnet-setup | contracts | M1-37 added, DONE | `scripts/localnet-setup.sh`: fresh local Kinlock in one command (local only; refuses other networks); verified on a fresh quickstart network, then the SDK smoke test passed with its env block (owner-approved new row). Docs synced (ADR-0028, ADR-0029) |
