@@ -129,7 +129,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 12 | 2 | 5 | 0 | 0 | 0 | 63% |
 | 1 M0 Validate | 17 | 0 | 1 | 16 | 0 | 0 | 0 | 0% |
-| 2 Contract + registry | 36 | 17 | 5 | 14 | 0 | 0 | 0 | 47% |
+| 2 Contract + registry | 37 | 18 | 5 | 14 | 0 | 0 | 0 | 49% |
 | 3 SDK + indexer | 19 | 1 | 1 | 17 | 0 | 0 | 0 | 5% |
 | 4 App | 24 | 1 | 1 | 22 | 0 | 0 | 0 | 4% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 8 | 1 | 0 | 7 | 0 | 0 | 0 | 13% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **199** | **32** | **10** | **132** | **0** | **25** | **0** | **18%** |
+| **All** | **200** | **33** | **10** | **132** | **0** | **25** | **0** | **19%** |
 
 ---
 
@@ -240,6 +240,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-34 | Decide `bump_lock` behavior when the full TTL no longer fits (clamp vs error) and after `expires_at + TTL_GRACE`; decide whether to convert seconds to ledgers more conservatively than 5 s | contracts | P1 | TODO | M1-33 | Decision recorded; tests cover it |
 | M1-35 | Spec decisions from the vault review: tranches with `unlock_at == expires_at` can never be released; suspend/re-activate toggling restarts the sender's refund grace | contracts | P1 | TODO | — | ADR accepted; code and tests follow it |
 | M1-36 | Failed token transfers surface the token's error code, which collides with Kinlock codes (SAC code 10 decodes as `PayeeAlreadyExists`); decide on a dedicated error or document it for the SDK | contracts | P1 | TODO | — | Decision recorded; SDK handles it |
+| M1-37 | Script the local-network setup (identities, local USDC, contract, attester, token, one payee) so anyone can run the SDK smoke test locally | contracts | P1 | DONE | M2-02 | One command on a fresh local network prints the env block; the SDK smoke test passes with it |
 
 ### 6.2 `kinlock-registry`
 
@@ -523,6 +524,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-10-07 | kinlock-contracts chore/localnet-setup | contracts | M1-37 added, DONE | `scripts/localnet-setup.sh`: fresh local Kinlock in one command (local only; refuses other networks); verified on a fresh quickstart network, then the SDK smoke test passed with its env block (owner-approved new row). Docs synced (ADR-0028, ADR-0029) |
 | 2026-10-07 | kinlock-contracts docs/m1-18-done | contracts | M1-18 DONE | `@kinlock/contract` 0.1.0 released on tag `bindings-v0.1.0` (GitHub Release, ADR-0026); installs from its URL and the SDK consumes it (kinlock-sdk#15, testnet run passed). Docs synced (ADR-0026 correction, ADR-0027) |
 | 2026-10-07 | kinlock-contracts chore/bindings-github-release | contracts | M1-18 IN PROGRESS (unchanged), DEC-03 amended | `bindings` workflow attaches the packed `@kinlock/contract` tarball to a GitHub Release on `bindings-vX.Y.Z` (ADR-0026) instead of publishing to npm; no publish secret; docs synced (ADR-0024..0026, AGENTS.md) |
 | 2026-10-06 | `fix/bindings-errors-sdk17` | contracts | no row changes (M1-18 stays IN PROGRESS) | Every contract error variant now has a doc comment (`Name: explanation`); stellar-sdk takes client error messages from these, so they were empty before. Bindings pinned to `@stellar/stellar-sdk` 17.2.1 (same as kinlock-sdk). Verified live on testnet: errors decode as e.g. "PayeeNotFound: no payee is registered with this ID." |

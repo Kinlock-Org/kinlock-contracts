@@ -11,6 +11,7 @@ stellar contract build     # first: tests load the built WASM (needs stellar-cli
 cargo clippy --all-targets -- -D warnings
 cargo test --workspace
 scripts/localnet.sh        # local network
+scripts/localnet-setup.sh  # fresh local Kinlock: identities, local USDC, contract, one payee
 ```
 
 ## Deploy (testnet)
