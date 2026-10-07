@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Last updated** | 2026-10-07 (README status banner) |
+| **Last updated** | 2026-10-07 (SCF open-source readiness fixes) |
 | **Docs baseline** | v0.3, worldwide scope (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`, `AGENTS.md`, `CLAUDE.md`, `project_structure.md`) |
 | **Current phase** | Phase 0 (Foundations) → starting Phase 1 (M0 Validate) |
 | **Readiness** | See [§3](#3-progress-snapshot) |
@@ -524,6 +524,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-10-07 | `docs/scf-readiness-fixes` | contracts | no row changes (org rows W-09/F-12 tracked in `.github`) | Part of an org-wide SCF open-source readiness audit (see `.github` `docs/scf-readiness.md`): filled the unfilled `Copyright [yyyy] [name of copyright owner]` placeholder in `LICENSE` and added `ISSUE_TEMPLATE/config.yml` (GitHub's community-profile check was reporting `issue_template: false` despite templates existing) |
 | 2026-10-07 | `docs/readme-status-banner` | contracts | no row changes | README said "scaffold... features are not built," which is stale (vault/registry entry points are implemented and tested). Corrected the status banner to match current progress; supports org-level `W-01` Wave-readiness |
 | 2026-10-07 | kinlock-contracts chore/localnet-setup | contracts | M1-37 added, DONE | `scripts/localnet-setup.sh`: fresh local Kinlock in one command (local only; refuses other networks); verified on a fresh quickstart network, then the SDK smoke test passed with its env block (owner-approved new row). Docs synced (ADR-0028, ADR-0029) |
 | 2026-10-07 | kinlock-contracts docs/m1-18-done | contracts | M1-18 DONE | `@kinlock/contract` 0.1.0 released on tag `bindings-v0.1.0` (GitHub Release, ADR-0026); installs from its URL and the SDK consumes it (kinlock-sdk#15, testnet run passed). Docs synced (ADR-0026 correction, ADR-0027) |
