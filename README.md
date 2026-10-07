@@ -2,7 +2,7 @@
 
 The `kinlock` Soroban contract (registry + vault modules), tests, deploy scripts, and generated TypeScript bindings.
 
-> **Status: scaffold.** Structure and data models are drafted; features are not built. Testnet only.
+> **Status: active development, testnet only.** Vault and registry entry points (`create_lock`, `release`, `refund`, `decline`, `bump_lock`) are implemented with property, auth, and TTL tests; budget and full integration suites are still open. See `ROADMAP.md`.
 
 ## Quick start
 ```
