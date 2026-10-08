@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Last updated** | 2026-10-08 (all copies reconciled with `scripts/roadmap-merge`; readiness 41%) |
+| **Last updated** | 2026-10-08 (Wave issue template adopted; rows M1-38..M1-41, M2-20, M2-21, M3-27 added; W-05 left TODO — org row, resolved by .github#26) |
 | **Docs baseline** | v0.3, worldwide scope (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`, `AGENTS.md`, `CLAUDE.md`, `project_structure.md`) |
 | **Current phase** | Phase 0 (Foundations) → starting Phase 1 (M0 Validate) |
 | **Readiness** | See [§3](#3-progress-snapshot) |
@@ -129,9 +129,9 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 16 | 1 | 2 | 0 | 0 | 0 | 84% |
 | 1 M0 Validate | 17 | 1 | 6 | 10 | 0 | 0 | 0 | 6% |
-| 2 Contract + registry | 37 | 24 | 3 | 10 | 0 | 0 | 0 | 65% |
-| 3 SDK + indexer | 19 | 14 | 3 | 2 | 0 | 0 | 0 | 74% |
-| 4 App | 26 | 15 | 7 | 4 | 0 | 0 | 0 | 58% |
+| 2 Contract + registry | 41 | 24 | 3 | 14 | 0 | 0 | 0 | 59% |
+| 3 SDK + indexer | 21 | 14 | 3 | 4 | 0 | 0 | 0 | 67% |
+| 4 App | 27 | 15 | 7 | 5 | 0 | 0 | 0 | 56% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
 | 6 Pre-mainnet features | 10 | 0 | 0 | 10 | 0 | 0 | 0 | 0% |
 | 7 Hardening | 26 | 0 | 0 | 26 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 10 | 4 | 1 | 5 | 0 | 0 | 0 | 40% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **204** | **74** | **21** | **84** | **0** | **25** | **0** | **41%** |
+| **All** | **211** | **74** | **21** | **91** | **0** | **25** | **0** | **40%** |
 
 ---
 
@@ -241,6 +241,10 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-35 | Spec decisions from the vault review: tranches with `unlock_at == expires_at` can never be released; suspend/re-activate toggling restarts the sender's refund grace | contracts | P1 | TODO | — | ADR accepted; code and tests follow it |
 | M1-36 | Failed token transfers surface the token's error code, which collides with Kinlock codes (SAC code 10 decodes as `PayeeAlreadyExists`); decide on a dedicated error or document it for the SDK | contracts | P1 | TODO | — | Decision recorded; SDK handles it |
 | M1-37 | Script the local-network setup (identities, local USDC, contract, attester, token, one payee) so anyone can run the SDK smoke test locally | contracts | P1 | DONE | M2-02 | One command on a fresh local network prints the env block; the SDK smoke test passes with it |
+| M1-38 | Property harness asserts invariants 5, 6 and 8 directly in `check_invariants`, not only through the operation gates | contracts | P1 | TODO | M1-14 | Each has a named assertion; a deliberately weakened gate is caught; `src/` untouched |
+| M1-39 | Contract surface reference: `docs/ERRORS.md` (every `#[contracterror]` code) and `docs/EVENTS.md` (all seven events with fields and `schema_version`) | contracts | P1 | TODO | M1-02 | Both pages exist in canonical docs; counts match `errors.rs` and `events.rs`; `sync-docs.sh --check` passes |
+| M1-40 | Registry validator boundary-fixture corpus: 0-, 2- and 3-decimal `local_currency`, non-Latin and right-to-left `display_name`, `slug` at its length limit, rejected `payout_address` forms | registry | P1 | TODO | M1-24, M1-27 | Each rule has a fixture that exercises it; rejections asserted by message; at least three countries represented |
+| M1-41 | `validate` reports every rule failure in one run instead of stopping at the first | registry | P2 | TODO | M1-40 | A record with three violations lists all three with file, rule id and fix hint; deterministic output; existing cases unedited |
 
 ### 6.2 `kinlock-registry`
 
@@ -281,6 +285,8 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M2-17 | SDK docs and API reference; publish testnet package versions | sdk | P0 | DONE | M2-07 | Published; docs match exports |
 | M2-18 | Indexer container, testnet deployment, managed Postgres, daily backups | sdk | P0 | IN PROGRESS | M2-14 | Running on testnet; restore tested once |
 | M2-19 | Indexer and list API: store and filter payees by `country` and `local_currency` (display and filter only) | sdk | P0 | DONE | M2-13, M1-29 | `/payees?country=` works; no country logic elsewhere |
+| M2-20 | Public HTTP reference for the list API (`services/indexer/docs/API.md`) with a route-parity test | sdk | P1 | TODO | M2-12 | All five routes documented with units and chain-vs-indexer labelling; renaming a route without editing the doc fails a test |
+| M2-21 | Amount precision boundary pinned at the `i128` and `NUMERIC(39,0)` limits; any SDK-side guard approved on the issue first | sdk | P1 | TODO | M2-07 | Boundary cases tested and as-is behaviour recorded; no money path uses `number` |
 
 ---
 
@@ -317,6 +323,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M3-24 | CI guard: fail on hard-coded country, currency, anchor, or locale literals outside registry data, tests, and fixtures | all | P1 | DONE | M3-01, M2-01 | Guard runs in app and sdk CI; passing and failing examples tested |
 | M3-25 | Favicon/app icon, persistent site header (nav, docs and GitHub links), mobile hamburger menu, reduced-motion-safe entrance motion | app | P2 | DONE | M3-01, M3-04 | Favicon set in every browser; nav usable one-handed on a narrow viewport; `prefers-reduced-motion` honored |
 | M3-26 | Interim chain-verified payee source for `/send` and `/request`, since no indexer is deployed (`M2-18`) | app | P1 | DONE | M3-05, M3-06 | `/send` and `/request` list real, on-chain `Active` payees and complete their flow up to wallet connect; **retired 2026-10-08**, superseded now that `M2-18`'s indexer is live (code removed, pages point at the real indexer again) |
+| M3-27 | Route-level `loading.tsx`, `error.tsx` and `not-found.tsx` for the user-facing routes | app | P1 | TODO | M3-01 | Every in-scope route has a designed pending/error/404 state; no stack trace or file path reaches the UI; `/claim/*` untouched |
 
 ---
 
@@ -528,6 +535,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-10-08 | `docs/wave-issue-format` (org side: `.github` #26) | contracts | Added `M1-38`, `M1-39` (this repo); `M1-40`, `M1-41`, `M2-20`, `M2-21`, `M3-27` mirrored for copy parity; `W-05` left `TODO` (org row) | Adopted the single org issue format and seeded the contracts half of the Wave backlog: #27 → `M1-38`, #28 → `M1-15`, #29 → `M1-39`, #30 → `F-18`/`F-19`. The seven rows are byte-identical across all five `ROADMAP.md` copies so `scripts/roadmap-merge` sees no divergence. |
 | 2026-10-08 | `chore/roadmap-reconcile` | org | canonical: 43 statuses corrected, rows M1-37 / M3-25 / M3-26 added; each repo copy: 36-52 statuses corrected, rows W-09 / W-10 added | First run of `scripts/roadmap-merge` (F-15) since the copies diverged at c488967 (2026-10-06). Three-way merge against that revision as ancestor: rows owned by a repo taken from that repo's copy, `org` / `all` rows from whichever copy changed them relative to the ancestor. One conflict adjudicated by hand: **F-11** - the canonical copy's reword and `DONE` (bea228e, ADR-0026) supersedes every repo copy's stale `IN PROGRESS`. **DEC-03** differed only in its ADR link prefix (`adr/` under `docs/`, `docs/adr/` at a repo root); `roadmap-merge` now normalizes that on read, so a path difference is never reported as a conflict. Root cause: each copy only ever advanced its own repo's rows, so every copy was stale for every other repo's rows too - 92 divergent statuses across the seven copies. Also corrects PR #25's changelog row, which was dated 2026-10-09 although the merge ran 2026-10-08 UTC. Progress table regenerated with `scripts/roadmap-progress`: **74 of 204 rows DONE, 41% readiness** |
 | 2026-10-08 | `feat/m3-24-country-agnostic-guard` | app | DONE: M3-24 | `M3-24` is a cross-cutting row ("all"); this PR plus a matching one in `kinlock-sdk` (PR #32 there) together complete it, so both mark it `DONE`. Added `lib/country-agnostic.test.ts`: fails if `nigeria`, `naira`, `ngn`, or `lagos` (case-insensitive, whole-word) appears anywhere under `app/`, `components/`, `lib/`, or `messages/`, excluding `*.test.ts`/`*.test.tsx`. Grounded in `AGENTS.md`'s own quick-reference wording ("Don't assume Nigeria or naira in code, tests, fixtures, or copy"), not a general country/currency-word ban, since this app's fixtures and UI deliberately exercise several real markets side by side (`messages/en.json` is included, since "copy" is explicitly in scope per that same rule). `docs/PRD.md`/`docs/ARCHITECTURE.md` are out of scope, since they legitimately narrate the pre-v0.3 "abroad to Nigeria" history. Runs via the existing `pnpm test` step already in CI, mirroring `lib/i18n/inline-strings.test.ts`'s existing pattern for a different check: no CI workflow changes needed. Verified the guard can actually fail: temporarily added a real violation to `lib/constants.ts`, confirmed it was caught with the exact term and file named, reverted (`git diff` empty), confirmed a clean pass. `pnpm lint`, `pnpm typecheck`, `pnpm test` (166/166), `pnpm build` all green |
 | 2026-10-08 | `feat/m3-14-fragment-leak-test` | app | DONE: M3-14 | The security headers, strict CSP, and no-third-party-scripts work was already built (`proxy.ts`, `lib/security/csp.ts`); the row's actual "Done when" (an automated test confirming the claim-link fragment never appears in any network request) didn't exist, and `lib/security/csp.test.ts` only unit-tests the CSP string builder, not real runtime behavior. Added `e2e/claim-fragment-privacy.spec.ts`: loads `/claim/11` (a real, already-existing testnet lock) with a real-shaped fragment, captures every outbound request for the page's lifetime (URL, body, headers), and fails if the reference or salt appears anywhere. Configured `playwright.config.ts` with a `webServer` (`pnpm build && pnpm start`, since `/claim/*`'s CSP differs between dev and production) and a `baseURL`, neither of which existed before. Verified the test can actually fail, not just trivially pass: temporarily injected a real leak into `useClaim.ts` (a stray `fetch` echoing the reference and salt), confirmed the test caught it with a clear diagnostic, then reverted (`git diff` confirms byte-identical to before) and confirmed a clean pass on the real code. Also caught and fixed two test-design bugs along the way: an invalid (non-`generateSalt()`-shaped) test salt silently made `parseClaimLink` throw before any of the code under test ran, and `waitForLoadState("networkidle")` never resolves on this page (it polls), so switched to a fixed wait. Verified: `pnpm lint`, `pnpm typecheck`, `pnpm test` (108/108), `pnpm build`, and the E2E test itself, run manually multiple times. **Not done here**: wiring this into CI. `.github/workflows/e2e.yml` is marked `DRAFT (ask-first: CI)` and currently just echoes a placeholder; actually running `pnpm e2e` there needs a human to approve editing the workflow file, per `AGENTS.md`'s CI/CD ask-first rule. No new secrets needed (all required env vars are the existing public `NEXT_PUBLIC_*` testnet config) |
