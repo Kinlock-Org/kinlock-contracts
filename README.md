@@ -1,8 +1,13 @@
 # kinlock-contracts
 
+[![CI](https://github.com/Kinlock-Org/kinlock-contracts/actions/workflows/ci.yml/badge.svg)](https://github.com/Kinlock-Org/kinlock-contracts/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
 The `kinlock` Soroban contract (registry + vault modules), tests, deploy scripts, and generated TypeScript bindings.
 
 > **Status: active development, testnet only.** Vault and registry entry points (`create_lock`, `release`, `refund`, `decline`, `bump_lock`) are implemented with property, auth, and TTL tests; budget and full integration suites are still open. See `ROADMAP.md`.
+
+**Try it live (testnet):** [kinlock-app.vercel.app](https://kinlock-app.vercel.app)
 
 ## Quick start
 ```
