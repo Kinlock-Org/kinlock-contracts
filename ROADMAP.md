@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Last updated** | 2026-10-08 (docs site link fix) |
+| **Last updated** | 2026-10-08 (M1-21 threat model) |
 | **Docs baseline** | v0.3, worldwide scope (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`, `AGENTS.md`, `CLAUDE.md`, `project_structure.md`) |
 | **Current phase** | Phase 0 (Foundations) → starting Phase 1 (M0 Validate) |
 | **Readiness** | See [§3](#3-progress-snapshot) |
@@ -129,7 +129,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 12 | 2 | 5 | 0 | 0 | 0 | 63% |
 | 1 M0 Validate | 17 | 0 | 1 | 16 | 0 | 0 | 0 | 0% |
-| 2 Contract + registry | 37 | 19 | 4 | 14 | 0 | 0 | 0 | 51% |
+| 2 Contract + registry | 37 | 20 | 4 | 13 | 0 | 0 | 0 | 54% |
 | 3 SDK + indexer | 19 | 1 | 1 | 17 | 0 | 0 | 0 | 5% |
 | 4 App | 24 | 1 | 1 | 22 | 0 | 0 | 0 | 4% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 8 | 1 | 0 | 7 | 0 | 0 | 0 | 13% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **200** | **34** | **9** | **132** | **0** | **25** | **0** | **19%** |
+| **All** | **200** | **35** | **9** | **131** | **0** | **25** | **0** | **20%** |
 
 ---
 
@@ -230,7 +230,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-18 | Generate TS bindings and publish pipeline | contracts | P0 | DONE | M1-17, F-11 | Package published on tag; SDK can consume |
 | M1-19 | Deploy to testnet with a test multisig admin; add test attesters and testnet USDC | contracts | P0 | DONE | M1-17 | Contract ID recorded in `DEPLOYMENTS.md` |
 | M1-20 | Upgrade/migration test against a snapshot of testnet state | contracts | P1 | TODO | M1-19 | Invariants hold after upgrade |
-| M1-21 | Contract `README`, `SECURITY.md`, and threat-model doc linked to invariants | contracts | P1 | TODO | M1-14 | Reviewer can map each threat to a control |
+| M1-21 | Contract `README`, `SECURITY.md`, and threat-model doc linked to invariants | contracts | P1 | DONE | M1-14 | Reviewer can map each threat to a control |
 | M1-22 | Internal review using the `CLAUDE.md` contract checklist; fix findings | contracts | P0 | TODO | M1-16 | Checklist completed with evidence |
 | M1-23 | Decide optional `refund_to` (ADR) | contracts | P2 | TODO | M1-05 | ADR accepted or declined |
 | M1-30 | Source `soroban-budget-assert` (not published on crates.io) or choose an alternative for budget tests | contracts | P0 | TODO | — | Crate usable from CI; `M1-16` can start |
@@ -524,6 +524,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-10-08 | `docs/m1-21-threat-model` | contracts | DONE: M1-21 | Expanded `SECURITY.md`'s threat model (was "draft pending"): a table linking each of the 10 property-tested invariants to exactly where `properties.rs::check_invariants` checks it and a representative unit test, plus a threats-to-controls table enriched with invariant numbers and the tests that verify each one. Cites real mutation-testing and independent-review evidence from the Changelog. Verified by actually running the suite: `cargo test --workspace` (107 unit tests, 1 property test, all green), `cargo fmt --all -- --check` and `cargo clippy --all-targets -- -D warnings` clean. Closes issue #17 (seeded under `W-02`) |
 | 2026-10-08 | `docs/docs-site-link-fix` | contracts | no row changes (org row W-10 tracked in `.github`) | Re-added the hosted-docs-site link to README; a prior PR (#19) merged before its second commit adding this same link finished pushing, so it never landed the first time |
 | 2026-10-08 | `docs/live-app-link` | contracts | no row changes | Linked the live testnet app (`kinlock-app.vercel.app`, `M3-22`) from README; also set as the repo's GitHub "Website" field |
 | 2026-10-07 | `docs/m1-01-done` | contracts | DONE: M1-01 | Verified CI green on `main` (fmt/clippy/test/build) and `scripts/localnet.sh` + `scripts/localnet-setup.sh` both present and merged (`chore/localnet-setup`, PR #14). `M1-01` formally depends on gate `G1` (not yet passed) — closing this row now, ahead of G1, follows the same precedent as the rest of Phase 2's work, done ahead of G1 at the owner's request. This unblocks `W-02` (seed issues), which depended on `M1-01` |
