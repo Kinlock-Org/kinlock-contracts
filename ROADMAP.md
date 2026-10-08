@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Last updated** | 2026-10-08 (live app link) |
+| **Last updated** | 2026-10-08 (docs site link fix) |
 | **Docs baseline** | v0.3, worldwide scope (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`, `AGENTS.md`, `CLAUDE.md`, `project_structure.md`) |
 | **Current phase** | Phase 0 (Foundations) → starting Phase 1 (M0 Validate) |
 | **Readiness** | See [§3](#3-progress-snapshot) |
@@ -524,6 +524,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-10-08 | `docs/docs-site-link-fix` | contracts | no row changes (org row W-10 tracked in `.github`) | Re-added the hosted-docs-site link to README; a prior PR (#19) merged before its second commit adding this same link finished pushing, so it never landed the first time |
 | 2026-10-08 | `docs/live-app-link` | contracts | no row changes | Linked the live testnet app (`kinlock-app.vercel.app`, `M3-22`) from README; also set as the repo's GitHub "Website" field |
 | 2026-10-07 | `docs/m1-01-done` | contracts | DONE: M1-01 | Verified CI green on `main` (fmt/clippy/test/build) and `scripts/localnet.sh` + `scripts/localnet-setup.sh` both present and merged (`chore/localnet-setup`, PR #14). `M1-01` formally depends on gate `G1` (not yet passed) — closing this row now, ahead of G1, follows the same precedent as the rest of Phase 2's work, done ahead of G1 at the owner's request. This unblocks `W-02` (seed issues), which depended on `M1-01` |
 | 2026-10-07 | `docs/scf-readiness-fixes` | contracts | no row changes (org rows W-09/F-12 tracked in `.github`) | Part of an org-wide SCF open-source readiness audit (see `.github` `docs/scf-readiness.md`): filled the unfilled `Copyright [yyyy] [name of copyright owner]` placeholder in `LICENSE` and added `ISSUE_TEMPLATE/config.yml` (GitHub's community-profile check was reporting `issue_template: false` despite templates existing) |
