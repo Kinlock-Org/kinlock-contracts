@@ -7,7 +7,7 @@ The `kinlock` Soroban contract (registry + vault modules), tests, deploy scripts
 
 > **Status: active development, testnet only.** Vault and registry entry points (`create_lock`, `release`, `refund`, `decline`, `bump_lock`) are implemented with property, auth, and TTL tests; budget and full integration suites are still open. See `ROADMAP.md`.
 
-**Try it live (testnet):** [kinlock-app.vercel.app](https://kinlock-app.vercel.app)
+**Try it live (testnet):** [kinlock-app.vercel.app](https://kinlock-app.vercel.app) · **Docs:** [kinlock-org.github.io](https://kinlock-org.github.io)
 
 ## Quick start
 ```
