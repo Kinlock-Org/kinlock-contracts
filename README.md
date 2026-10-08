@@ -33,5 +33,6 @@ Defaults to testnet; `STELLAR_NETWORK=local` targets `scripts/localnet.sh`. Main
 - `docs/ARCHITECTURE_ESSENTIALS.md` (short; read at the start of every task)
 - `AGENTS.md` (rules for humans and agents) and `CLAUDE.md`
 - `ROADMAP.md`: **every PR updates it**
+- `SECURITY.md`: threat model, linked to the property-tested invariants and the tests that check them
 
 Docs in `docs/` are read-only copies synced from [Kinlock-Org/.github](https://github.com/Kinlock-Org/.github).
