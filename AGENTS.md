@@ -2,7 +2,7 @@
 
 Instructions for AI coding agents working in any Kinlock repository. Humans may read it too.
 
-Kinlock lets **anyone, anywhere lock USDC on Stellar (Soroban) for a verified school or landlord anywhere in the world.** A sender locks funds to a verified payee (School or Rent), and funds can only go to that payee's payout address or back to the sender. The product is **worldwide by design and launched market by market**: nothing in the code is tied to one country. It handles other people's money, so **correctness and restraint matter more than speed or cleverness.**
+Kinlock lets **anyone, anywhere lock USDC on Stellar (Soroban) for a verified payee anywhere in the world.** A sender locks funds to a verified payee (School or Rent), and funds can only go to that payee's payout address or back to the sender. The product is **worldwide by design and launched market by market**: nothing in the code is tied to one country. It handles other people's money, so **correctness and restraint matter more than speed or cleverness.**
 
 Docs version this file was written against: **v0.3** (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`).
 

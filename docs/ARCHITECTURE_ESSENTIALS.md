@@ -6,7 +6,7 @@
 > If code and this file disagree, stop and flag it. Don't silently pick one.
 
 ## 1. What this is
-- **Anyone, anywhere can lock USDC on Stellar/Soroban for a verified school or landlord anywhere in the world.** Worldwide by design, launched market by market.
+- **Anyone, anywhere can lock USDC on Stellar/Soroban for a verified payee anywhere in the world.** Worldwide by design, launched market by market.
 - A sender locks funds to a **verified payee** (School or Rent) in a **supported country**.
 - Funds go only to the payee's **snapshotted payout address** or back to the sender.
 - Receipts prove **payment to a verified payee**. They do **not** prove service delivery.
