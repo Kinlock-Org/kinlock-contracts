@@ -36,3 +36,5 @@ Defaults to testnet; `STELLAR_NETWORK=local` targets `scripts/localnet.sh`. Main
 - `SECURITY.md`: threat model, linked to the property-tested invariants and the tests that check them
 
 Docs in `docs/` are read-only copies synced from [Kinlock-Org/.github](https://github.com/Kinlock-Org/.github).
+
+Found a documentation gap (missing, unclear, or outdated docs)? File it at [Kinlock-Org.github.io](https://github.com/Kinlock-Org/Kinlock-Org.github.io/issues/new/choose) with `area:contract`, the org's documentation hub, not here.
