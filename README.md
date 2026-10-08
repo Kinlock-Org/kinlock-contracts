@@ -5,7 +5,7 @@
 
 The `kinlock` Soroban contract — payee registry and lock vault in one contract, modular code — plus its tests, deploy tooling, and generated TypeScript bindings.
 
-> **Status: functionally complete, hardening open.** All 20 entry points are implemented with 107 unit tests and property tests over invariants 1–10, deployed to testnet behind a 2-of-3 multisig. Budget tests (`M1-16`), the integration suite (`M1-15`), the internal review (`M1-22`), and the external audit (`H-04`) are still open — which is exactly the gap between "testnet pilot" and "mainnet". See `ROADMAP.md`.
+> **Status: functionally complete, hardening open.** All 18 entry points — `__constructor` plus 17 callable functions, all in the single `#[contractimpl]` in `contracts/kinlock/src/lib.rs` — are implemented with 107 unit tests and property tests over invariants 1–10, deployed to testnet behind a 2-of-3 multisig. Budget tests (`M1-16`), the integration suite (`M1-15`), the internal review (`M1-22`), and the external audit (`H-04`) are still open — which is exactly the gap between "testnet pilot" and "mainnet". See `ROADMAP.md`.
 
 **Try it live (testnet):** [kinlock-app.vercel.app](https://kinlock-app.vercel.app) · **Docs:** [kinlock-org.github.io](https://kinlock-org.github.io) · **Deployment:** [`DEPLOYMENTS.md`](DEPLOYMENTS.md)
 
