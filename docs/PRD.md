@@ -14,7 +14,7 @@
 | **Companion docs** | `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md` |
 
 ### What changed in v0.3 (worldwide scope)
-- **Product is no longer "abroad → Nigeria".** Any sender, anywhere, can lock USDC for a verified school or landlord anywhere in a **supported country**. Domestic payments (sender and payee in the same country) are in scope.
+- **Product is no longer "abroad → Nigeria".** Any sender, anywhere, can lock USDC for a verified payee anywhere in a **supported country**. Domestic payments (sender and payee in the same country) are in scope.
 - **Worldwide by design, launched market by market.** The core stays country-agnostic: no country, currency, or anchor is hard-coded in the contract, SDK, indexer, or app. Country and local currency are **registry data** (ISO 3166-1 and ISO 4217).
 - **Supported-countries list** (REG-9), enforced in registry CI and app policy, set with counsel. It is **not** enforced on-chain (§9.1 B19).
 - **Naira-specific items generalized:** indicative **local-currency** equivalent (SND-4), per-market cash-out routes (PAY-5), per-market legal review.
@@ -35,7 +35,7 @@
 
 ## 1. Summary
 
-**Kinlock lets anyone, anywhere lock USDC on Stellar (Soroban) for a verified school or landlord anywhere in the world.**
+**Kinlock lets anyone, anywhere lock USDC on Stellar (Soroban) for a verified payee anywhere in the world.**
 
 In more detail: a sender locks USDC to a **verified payee** (a school or landlord) for a declared purpose. The funds can only be released to that payee, or returned to the sender if unclaimed or if the payee is revoked. Each release yields a **receipt anyone can verify on-chain**.
 
@@ -46,7 +46,7 @@ Kinlock is non-custodial: a Soroban contract holds locked balances and no Kinloc
 **What Kinlock proves:** a specific amount of USDC reached a payee that a named attester verified, at a specific time, for a specific reference.
 **What Kinlock does not prove:** that the school credited the student, or that the landlord applied the rent. Optional payee acknowledgment narrows this gap (LCK-10) but cannot close it.
 
-**MVP in one sentence:** a sender locks USDC to a registered school or landlord, the payee releases it in tranches, and anyone can verify the payment on-chain.
+**MVP in one sentence:** a sender locks USDC to a registered payee, the payee releases it in tranches, and anyone can verify the payment on-chain.
 
 ## 2. Problem
 
