@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Last updated** | 2026-10-08 (documentation-hub link) |
+| **Last updated** | 2026-10-08 (wording: "verified payee" replaces "school or landlord") |
 | **Docs baseline** | v0.3, worldwide scope (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`, `AGENTS.md`, `CLAUDE.md`, `project_structure.md`) |
 | **Current phase** | Phase 0 (Foundations) → starting Phase 1 (M0 Validate) |
 | **Readiness** | See [§3](#3-progress-snapshot) |
@@ -524,7 +524,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
-| 2026-10-08 | `docs/readme-refresh` | contracts | no row changes | Rewrote the README against the code: entry points by caller, the constants that bound a lock, 107 unit tests plus property tests over invariants 1-10, the testnet contract ID and 2-of-3 multisig admin. Corrected two stale claims: bindings publishing uses the workflow `GITHUB_TOKEN` (there is no `NPM_TOKEN`), and CI pins stellar-cli 27.0.0, not 25.2+ |
+| 2026-10-08 | `docs/verified-payee-wording` | contracts | no row changes | Synced `AGENTS.md`/`docs/PRD.md`/`docs/ARCHITECTURE_ESSENTIALS.md` from `Kinlock-Org/.github` (`scripts/sync-docs.sh`): "a verified school or landlord" in the mission-statement-style sentences replaced with "a verified payee." Canonical source edited in `.github` PR #23 |
 | 2026-10-08 | `docs/link-doc-hub` | contracts | no row changes (org row W-10 tracked in `.github`) | Linked `Kinlock-Org.github.io` (the org's documentation-issue hub) from README, with `area:contract` |
 | 2026-10-08 | `docs/m1-21-threat-model` | contracts | DONE: M1-21 | Expanded `SECURITY.md`'s threat model (was "draft pending"): a table linking each of the 10 property-tested invariants to exactly where `properties.rs::check_invariants` checks it and a representative unit test, plus a threats-to-controls table enriched with invariant numbers and the tests that verify each one. Cites real mutation-testing and independent-review evidence from the Changelog. Verified by actually running the suite: `cargo test --workspace` (107 unit tests, 1 property test, all green), `cargo fmt --all -- --check` and `cargo clippy --all-targets -- -D warnings` clean. Closes issue #17 (seeded under `W-02`) |
 | 2026-10-08 | `docs/docs-site-link-fix` | contracts | no row changes (org row W-10 tracked in `.github`) | Re-added the hosted-docs-site link to README; a prior PR (#19) merged before its second commit adding this same link finished pushing, so it never landed the first time |
