@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Last updated** | 2026-10-08 (W-05 resolved; 17 Wave issues seeded with seven new rows; issue format proofed against Drips' maintainer guide; the three pre-format issues triaged — app #16 re-emitted, app #15 and registry #7 closed as superseded; repo-side Changelog lines unioned back into canonical by `scripts/roadmap-merge`; that merge's ADR-link normalization anchored so quoted prose cannot be rewritten) |
+| **Last updated** | 2026-10-17 (M1-39 contracts #29 contract surface reference published; 107 tests green) |
 | **Docs baseline** | v0.3, worldwide scope (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`, `AGENTS.md`, `CLAUDE.md`, `project_structure.md`) |
 | **Current phase** | Phase 0 (Foundations) → starting Phase 1 (M0 Validate) |
 | **Readiness** | See [§3](#3-progress-snapshot) |
@@ -129,7 +129,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 16 | 1 | 2 | 0 | 0 | 0 | 84% |
 | 1 M0 Validate | 17 | 1 | 6 | 10 | 0 | 0 | 0 | 6% |
-| 2 Contract + registry | 41 | 24 | 3 | 14 | 0 | 0 | 0 | 59% |
+| 2 Contract + registry | 41 | 25 | 3 | 13 | 0 | 0 | 0 | 61% |
 | 3 SDK + indexer | 21 | 14 | 3 | 4 | 0 | 0 | 0 | 67% |
 | 4 App | 27 | 15 | 7 | 5 | 0 | 0 | 0 | 56% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 10 | 5 | 1 | 4 | 0 | 0 | 0 | 50% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **211** | **75** | **21** | **90** | **0** | **25** | **0** | **40%** |
+| **All** | **211** | **76** | **21** | **89** | **0** | **25** | **0** | **41%** |
 
 ---
 
@@ -242,7 +242,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-36 | Failed token transfers surface the token's error code, which collides with Kinlock codes (SAC code 10 decodes as `PayeeAlreadyExists`); decide on a dedicated error or document it for the SDK | contracts | P1 | TODO | — | Decision recorded; SDK handles it |
 | M1-37 | Script the local-network setup (identities, local USDC, contract, attester, token, one payee) so anyone can run the SDK smoke test locally | contracts | P1 | DONE | M2-02 | One command on a fresh local network prints the env block; the SDK smoke test passes with it |
 | M1-38 | Property harness asserts invariants 5, 6 and 8 directly in `check_invariants`, not only through the operation gates | contracts | P1 | TODO | M1-14 | Each has a named assertion; a deliberately weakened gate is caught; `src/` untouched |
-| M1-39 | Contract surface reference: `docs/ERRORS.md` (every `#[contracterror]` code) and `docs/EVENTS.md` (all seven events with fields and `schema_version`) | contracts | P1 | TODO | M1-02 | Both pages exist in canonical docs; counts match `errors.rs` and `events.rs`; `sync-docs.sh --check` passes |
+| M1-39 | Contract surface reference: `docs/ERRORS.md` (every `#[contracterror]` code) and `docs/EVENTS.md` (all seven events with fields and `schema_version`) | contracts | P1 | DONE | M1-02 | Both pages exist in canonical docs; counts match `errors.rs` and `events.rs`; `sync-docs.sh --check` passes |
 | M1-40 | Registry validator boundary-fixture corpus: 0-, 2- and 3-decimal `local_currency`, non-Latin and right-to-left `display_name`, `slug` at its length limit, rejected `payout_address` forms | registry | P1 | TODO | M1-24, M1-27 | Each rule has a fixture that exercises it; rejections asserted by message; at least three countries represented |
 | M1-41 | `validate` reports every rule failure in one run instead of stopping at the first | registry | P2 | TODO | M1-40 | A record with three violations lists all three with file, rule id and fix hint; deterministic output; existing cases unedited |
 
@@ -535,6 +535,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-10-17 | `docs/contract-surface-reference` (#34) | contracts | DONE: M1-39 | Closes #29. Published authoritative contract surface reference: canonical `docs/ERRORS.md` (covering all 32 non-contiguous `#[contracterror]` codes, categorized with precise firing conditions, caller recovery guidance, lock terminality, and notes on retired codes 1 and 27) and `docs/EVENTS.md` (covering all 7 contract events across registry and vault with `schema_version = 1`, field types, stroops units, example payloads, and the immutable payout snapshotting rationale per hard rule 2). Synced via `scripts/sync-docs.sh` to repo copies, verified with `--check`. Linked from README and `docs/ARCHITECTURE_ESSENTIALS.md`. |
 | 2026-10-08 | `chore/roadmap-copy-back` (#32) | contracts | no row changes | Copy-back run: `ROADMAP.md` replaced with the merged canonical (`.github` main as of #31) in repo-root link form, and §3 recomputed with `scripts/roadmap-progress`. This is the step `roadmap-merge`'s header requires after every merge and that was skipped between 2026-10-06 and 2026-10-08, which is how the seven copies reached 92 divergent statuses. Verified in this checkout: the file equals canonical byte for byte apart from this entry and the ADR link prefix, `W-05` reads `DONE`, the seven Wave rows are present, duplicate row-ID scan is 0. No row, status, priority, dependency or **Done when** was authored in this repo. |
 | 2026-10-08 | `fix/roadmap-merge-link-anchor` | org | no row changes | Found while preparing the copy-back. `roadmap-merge`'s read normalization rewrote the docs-rooted ADR link form into the root-relative one on every copy so the two depths compare equal — correct for links, wrong for prose: the union entry above quotes both forms, so reading that line collapsed its own quote and emitted a Changelog entry contradicting itself, in a copy that no longer matched canonical line for line. Fixed by anchoring the replace on the numeric ADR filename that always follows the slash, so only real links are rewritten, and by re-wording the union entry to name the two forms as `docs/adr/` and `adr/` rather than spelling them as link text: **an entry that describes this rewrite must not itself be a string the rewrite can act on.** Verified: the anchored read leaves a quoted form byte-identical where the blanket replace corrupted it; a full `roadmap-merge` over all five copies against `b12d290` exits 0 with **0 lines** differing from canonical, which also confirms the union is complete; the one real link (`ADR-0026`) still normalizes both ways. No row, status, priority, dependency or **Done when** in this diff. |
 | 2026-10-08 | `chore/roadmap-changelog-union` | org | no row changes | Second `scripts/roadmap-merge` run now that the Wave-format PRs have merged (`.github` #26 and #27, contracts #31, sdk #38, app #43, registry #18). Three-way against `b12d290`, the revision where all five copies were last identical. The merge's **entire** output is four lines: the repo-side `docs/wave-issue-format` Changelog rows that each repo wrote into its own copy and canonical never saw. No row ID, status, priority, dependency or **Done when** moved — the seven new rows went in byte-identically, and `W-05`'s `TODO` → `DONE` stayed on the `org` row in canonical as §12 requires, so the repo copies' deliberately-untouched `TODO` was not merged back over it. §3 verified unchanged by `roadmap-progress`: 211 rows, 75 `DONE`, 40%. **Not in this PR:** the copy-back. Each repo's `ROADMAP.md` must be rewritten from the merged canonical, with the ADR links rewritten for the repo-root location, so all five copies are byte-identical again — that invariant is what makes `--ancestor` meaningful next time, and it needs four repo PRs that can only be cut after this lands. |
