@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Last updated** | 2026-10-23 (added `M1-42`: anti-malware CI job for this repo) |
+| **Last updated** | 2026-10-23 (`M1-42` DONE: anti-malware CI job verified green on PR #38) |
 | **Docs baseline** | v0.3, worldwide scope (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`, `AGENTS.md`, `CLAUDE.md`, `project_structure.md`) |
 | **Current phase** | Phase 0 (Foundations) → starting Phase 1 (M0 Validate) |
 | **Readiness** | See [§3](#3-progress-snapshot) |
@@ -129,7 +129,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 16 | 1 | 2 | 0 | 0 | 0 | 84% |
 | 1 M0 Validate | 17 | 1 | 6 | 10 | 0 | 0 | 0 | 6% |
-| 2 Contract + registry | 42 | 24 | 4 | 14 | 0 | 0 | 0 | 57% |
+| 2 Contract + registry | 42 | 25 | 3 | 14 | 0 | 0 | 0 | 60% |
 | 3 SDK + indexer | 21 | 14 | 3 | 4 | 0 | 0 | 0 | 67% |
 | 4 App | 27 | 15 | 7 | 5 | 0 | 0 | 0 | 56% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 10 | 5 | 1 | 4 | 0 | 0 | 0 | 50% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **212** | **75** | **22** | **90** | **0** | **25** | **0** | **40%** |
+| **All** | **212** | **76** | **21** | **90** | **0** | **25** | **0** | **41%** |
 
 ---
 
@@ -245,7 +245,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-39 | Contract surface reference: `docs/ERRORS.md` (every `#[contracterror]` code) and `docs/EVENTS.md` (all seven events with fields and `schema_version`) | contracts | P1 | TODO | M1-02 | Both pages exist in canonical docs; counts match `errors.rs` and `events.rs`; `sync-docs.sh --check` passes |
 | M1-40 | Registry validator boundary-fixture corpus: 0-, 2- and 3-decimal `local_currency`, non-Latin and right-to-left `display_name`, `slug` at its length limit, rejected `payout_address` forms | registry | P1 | TODO | M1-24, M1-27 | Each rule has a fixture that exercises it; rejections asserted by message; at least three countries represented |
 | M1-41 | `validate` reports every rule failure in one run instead of stopping at the first | registry | P2 | TODO | M1-40 | A record with three violations lists all three with file, rule id and fix hint; deterministic output; existing cases unedited |
-| M1-42 | CI `malware-scan` job: `cargo audit` against the RustSec advisory database plus a Semgrep source scan on every PR | contracts | P1 | IN PROGRESS | — | Job runs on every PR; a known-vulnerable crate or an injected malicious-pattern test case trips it; verified green on a real PR |
+| M1-42 | CI `malware-scan` job: `cargo audit` against the RustSec advisory database plus a Semgrep source scan on every PR | contracts | P1 | DONE | — | Job runs on every PR; a known-vulnerable crate or an injected malicious-pattern test case trips it; verified green on a real PR |
 
 ### 6.2 `kinlock-registry`
 
@@ -536,6 +536,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-10-23 | `ci/malware-scan` (#38) | contracts | M1-42 DONE | Follow-up: the first CI run on this PR caught the unscoped Semgrep call also scanning `.github/workflows/*.yml`, flagging unpinned action tags and a real shell-injection pattern in the existing `roadmap-check.yml` (`${{ github.base_ref }}` interpolated into a `run:` step) — out of this job's scope (CI-config hardening is a separate, repo-wide decision), flagged here rather than fixed silently. Rescoped the scan to `contracts/kinlock/src`; all five checks (`contract`, `dependency-audit`, `docs-in-sync`, `roadmap-check`, `source-scan`) now pass on PR #38. `M1-42` confirmed `DONE`. |
 | 2026-10-23 | `ci/malware-scan` | contracts | M1-42 IN PROGRESS | Added `.github/workflows/malware-scan.yml`: `cargo audit` (RustSec advisory DB) plus a Semgrep source scan (`--config auto --error`) on every PR. Verified locally: `cargo install cargo-audit --locked && cargo audit` runs clean against `Cargo.lock` (1 unmaintained-crate warning on `paste`, no vulnerabilities, exit 0); Semgrep (clean venv, v1.136.0) finds 0 findings across `contracts/kinlock/src`. Left `IN PROGRESS` pending the first real PR run confirming the job executes green in GitHub Actions. |
 | 2026-10-08 | `chore/roadmap-copy-back` (#32) | contracts | no row changes | Copy-back run: `ROADMAP.md` replaced with the merged canonical (`.github` main as of #31) in repo-root link form, and §3 recomputed with `scripts/roadmap-progress`. This is the step `roadmap-merge`'s header requires after every merge and that was skipped between 2026-10-06 and 2026-10-08, which is how the seven copies reached 92 divergent statuses. Verified in this checkout: the file equals canonical byte for byte apart from this entry and the ADR link prefix, `W-05` reads `DONE`, the seven Wave rows are present, duplicate row-ID scan is 0. No row, status, priority, dependency or **Done when** was authored in this repo. |
 | 2026-10-08 | `fix/roadmap-merge-link-anchor` | org | no row changes | Found while preparing the copy-back. `roadmap-merge`'s read normalization rewrote the docs-rooted ADR link form into the root-relative one on every copy so the two depths compare equal — correct for links, wrong for prose: the union entry above quotes both forms, so reading that line collapsed its own quote and emitted a Changelog entry contradicting itself, in a copy that no longer matched canonical line for line. Fixed by anchoring the replace on the numeric ADR filename that always follows the slash, so only real links are rewritten, and by re-wording the union entry to name the two forms as `docs/adr/` and `adr/` rather than spelling them as link text: **an entry that describes this rewrite must not itself be a string the rewrite can act on.** Verified: the anchored read leaves a quoted form byte-identical where the blanket replace corrupted it; a full `roadmap-merge` over all five copies against `b12d290` exits 0 with **0 lines** differing from canonical, which also confirms the union is complete; the one real link (`ADR-0026`) still normalizes both ways. No row, status, priority, dependency or **Done when** in this diff. |
