@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Last updated** | 2026-10-23 (`M1-42` DONE: anti-malware CI job verified green on PR #38) |
+| **Last updated** | 2026-10-26 (`M1-46` DONE: stopgap suppression for `RUSTSEC-2026-0387`; `DEC-24` opened to track the real fix) |
 | **Docs baseline** | v0.3, worldwide scope (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`, `AGENTS.md`, `CLAUDE.md`, `project_structure.md`) |
 | **Current phase** | Phase 0 (Foundations) → starting Phase 1 (M0 Validate) |
 | **Readiness** | See [§3](#3-progress-snapshot) |
@@ -129,7 +129,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 16 | 1 | 2 | 0 | 0 | 0 | 84% |
 | 1 M0 Validate | 17 | 1 | 6 | 10 | 0 | 0 | 0 | 6% |
-| 2 Contract + registry | 42 | 25 | 3 | 14 | 0 | 0 | 0 | 60% |
+| 2 Contract + registry | 43 | 26 | 3 | 14 | 0 | 0 | 0 | 60% |
 | 3 SDK + indexer | 21 | 14 | 3 | 4 | 0 | 0 | 0 | 67% |
 | 4 App | 27 | 15 | 7 | 5 | 0 | 0 | 0 | 56% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 10 | 5 | 1 | 4 | 0 | 0 | 0 | 50% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **212** | **76** | **21** | **90** | **0** | **25** | **0** | **41%** |
+| **All** | **213** | **77** | **21** | **90** | **0** | **25** | **0** | **41%** |
 
 ---
 
@@ -246,6 +246,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-40 | Registry validator boundary-fixture corpus: 0-, 2- and 3-decimal `local_currency`, non-Latin and right-to-left `display_name`, `slug` at its length limit, rejected `payout_address` forms | registry | P1 | TODO | M1-24, M1-27 | Each rule has a fixture that exercises it; rejections asserted by message; at least three countries represented |
 | M1-41 | `validate` reports every rule failure in one run instead of stopping at the first | registry | P2 | TODO | M1-40 | A record with three violations lists all three with file, rule id and fix hint; deterministic output; existing cases unedited |
 | M1-42 | CI `malware-scan` job: `cargo audit` against the RustSec advisory database plus a Semgrep source scan on every PR | contracts | P1 | DONE | — | Job runs on every PR; a known-vulnerable crate or an injected malicious-pattern test case trips it; verified green on a real PR |
+| M1-46 | Stopgap: `.cargo/audit.toml` suppresses `RUSTSEC-2026-0387` (`crypto-bigint` 0.5.5 timing-variability advisory, transitive via `soroban-sdk`'s ECDSA stack) so `M1-42`'s `dependency-audit` job stops blocking every PR. Not a fix — the vulnerable version is unavoidable under the current `soroban-sdk@28.0.0` pin | contracts | P1 | DONE | M1-42 | `cargo audit` exits 0 (verified locally); suppression is scoped to this one advisory ID only, dated and justified in the config file; tracked here for removal once a stable `soroban-sdk` release moves off the vulnerable `elliptic-curve`/`crypto-bigint` chain |
 
 ### 6.2 `kinlock-registry`
 
@@ -374,6 +375,7 @@ Resolve each with an ADR and link it here. Move resolved rows to the bottom with
 | DEC-21 | Enforce attester-country scope on-chain too, or registry CI only (default: CI only) | M1-29 | Open |
 | DEC-22 | TypeScript tooling: linter, test runner, dev/script runner, and i18n library | M2-01, M3-01 | Resolved 2026-10-06: Biome, Vitest, tsx; built-in i18n helper (ADR-0021) |
 | DEC-23 | JSON Schema validator for registry CI | M1-24 | Resolved 2026-10-06: Ajv + ajv-formats (ADR-0021) |
+| DEC-24 | How to resolve `RUSTSEC-2026-0387` (`crypto-bigint` timing advisory) long-term: wait for a stable `soroban-sdk` release, or an earlier lower-risk path if one appears | M1-46 | Open — stopgap suppression in place (`M1-46`), no permanent resolution yet |
 
 ---
 
@@ -536,6 +538,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-10-26 | `chore/suppress-crypto-bigint-advisory` | contracts | M1-46 DONE, DEC-24 opened | `M1-42`'s `dependency-audit` job was failing on every PR (including unrelated ones, e.g. `ci/scorecard` #39) on `RUSTSEC-2026-0387`, a `crypto-bigint` 0.5.5 timing-variability advisory published 2026-10-23 -- three days after `M1-42` merged. Verified this cannot be fixed by bumping the leaf crate: `cargo update -p crypto-bigint --precise 0.7.6` fails because `elliptic-curve@0.13.8` (pinned by `soroban-env-host@28.0.2`, pinned by `soroban-sdk@28.0.0`) hard-requires `crypto-bigint = "^0.5"`, and `0.7.6` is separately yanked by its own author regardless. Added `.cargo/audit.toml` (auto-discovered by `cargo audit`, no CLI flag needed) ignoring only this one advisory ID, with a dated, justified comment pointing at the dependency chain and the real fix path (a stable `soroban-sdk` release off the vulnerable chain -- today only a `30.0.0-rc.1` pre-release exists). Verified: `cargo audit` exits 0; `cargo fmt --all -- --check` and `cargo clippy --all-targets -- -D warnings` both clean. Opened `DEC-24` to track the real resolution; this is a stopgap, not a fix. |
 | 2026-10-23 | `ci/malware-scan` (#38) | contracts | M1-42 DONE | Follow-up: the first CI run on this PR caught the unscoped Semgrep call also scanning `.github/workflows/*.yml`, flagging unpinned action tags and a real shell-injection pattern in the existing `roadmap-check.yml` (`${{ github.base_ref }}` interpolated into a `run:` step) — out of this job's scope (CI-config hardening is a separate, repo-wide decision), flagged here rather than fixed silently. Rescoped the scan to `contracts/kinlock/src`; all five checks (`contract`, `dependency-audit`, `docs-in-sync`, `roadmap-check`, `source-scan`) now pass on PR #38. `M1-42` confirmed `DONE`. |
 | 2026-10-23 | `ci/malware-scan` | contracts | M1-42 IN PROGRESS | Added `.github/workflows/malware-scan.yml`: `cargo audit` (RustSec advisory DB) plus a Semgrep source scan (`--config auto --error`) on every PR. Verified locally: `cargo install cargo-audit --locked && cargo audit` runs clean against `Cargo.lock` (1 unmaintained-crate warning on `paste`, no vulnerabilities, exit 0); Semgrep (clean venv, v1.136.0) finds 0 findings across `contracts/kinlock/src`. Left `IN PROGRESS` pending the first real PR run confirming the job executes green in GitHub Actions. |
 | 2026-10-08 | `chore/roadmap-copy-back` (#32) | contracts | no row changes | Copy-back run: `ROADMAP.md` replaced with the merged canonical (`.github` main as of #31) in repo-root link form, and §3 recomputed with `scripts/roadmap-progress`. This is the step `roadmap-merge`'s header requires after every merge and that was skipped between 2026-10-06 and 2026-10-08, which is how the seven copies reached 92 divergent statuses. Verified in this checkout: the file equals canonical byte for byte apart from this entry and the ADR link prefix, `W-05` reads `DONE`, the seven Wave rows are present, duplicate row-ID scan is 0. No row, status, priority, dependency or **Done when** was authored in this repo. |
