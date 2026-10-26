@@ -1,4 +1,8 @@
 # Fails a PR that doesn't change ROADMAP.md or doesn't add a Changelog row (AGENTS.md §12).
+# Exempts Dependabot: it has no way to know this project-specific convention, and can't
+# be configured to edit ROADMAP.md itself. A job skipped by this `if` reports "Success"
+# and does not block the required check (verified against GitHub's own docs on status
+# checks before relying on it).
 # DRAFT (ask-first: CI).
 name: roadmap-check
 on:
@@ -7,6 +11,7 @@ permissions:
   contents: read
 jobs:
   roadmap-check:
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
