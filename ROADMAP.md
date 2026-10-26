@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Last updated** | 2026-10-26 (added `M1-45`: OpenSSF Scorecard CI for this repo) |
+| **Last updated** | 2026-10-26 (`M1-45` DONE, confirmed live; added `M1-47`: Scorecard remediation Tier 1) |
 | **Docs baseline** | v0.3, worldwide scope (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`, `AGENTS.md`, `CLAUDE.md`, `project_structure.md`) |
 | **Current phase** | Phase 0 (Foundations) → starting Phase 1 (M0 Validate) |
 | **Readiness** | See [§3](#3-progress-snapshot) |
@@ -129,7 +129,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 16 | 1 | 2 | 0 | 0 | 0 | 84% |
 | 1 M0 Validate | 17 | 1 | 6 | 10 | 0 | 0 | 0 | 6% |
-| 2 Contract + registry | 43 | 25 | 4 | 14 | 0 | 0 | 0 | 58% |
+| 2 Contract + registry | 44 | 26 | 4 | 14 | 0 | 0 | 0 | 59% |
 | 3 SDK + indexer | 21 | 14 | 3 | 4 | 0 | 0 | 0 | 67% |
 | 4 App | 27 | 15 | 7 | 5 | 0 | 0 | 0 | 56% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 10 | 5 | 1 | 4 | 0 | 0 | 0 | 50% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **213** | **76** | **22** | **90** | **0** | **25** | **0** | **40%** |
+| **All** | **214** | **77** | **22** | **90** | **0** | **25** | **0** | **41%** |
 
 ---
 
@@ -246,7 +246,8 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-40 | Registry validator boundary-fixture corpus: 0-, 2- and 3-decimal `local_currency`, non-Latin and right-to-left `display_name`, `slug` at its length limit, rejected `payout_address` forms | registry | P1 | TODO | M1-24, M1-27 | Each rule has a fixture that exercises it; rejections asserted by message; at least three countries represented |
 | M1-41 | `validate` reports every rule failure in one run instead of stopping at the first | registry | P2 | TODO | M1-40 | A record with three violations lists all three with file, rule id and fix hint; deterministic output; existing cases unedited |
 | M1-42 | CI `malware-scan` job: `cargo audit` against the RustSec advisory database plus a Semgrep source scan on every PR | contracts | P1 | DONE | — | Job runs on every PR; a known-vulnerable crate or an injected malicious-pattern test case trips it; verified green on a real PR |
-| M1-45 | Add OpenSSF Scorecard CI (`ossf/scorecard-action`): weekly supply-chain security posture scan published to the public Scorecard API/badge | contracts | P2 | IN PROGRESS | — | `.github/workflows/scorecard.yml` runs on push to `main` and weekly; results visible on the Security tab and via `https://api.scorecard.dev/projects/github.com/Kinlock-Org/kinlock-contracts/badge`; verified on a real run |
+| M1-45 | Add OpenSSF Scorecard CI (`ossf/scorecard-action`): weekly supply-chain security posture scan published to the public Scorecard API/badge | contracts | P2 | DONE | — | `.github/workflows/scorecard.yml` runs on push to `main` and weekly; results visible on the Security tab and via `https://api.scorecard.dev/projects/github.com/Kinlock-Org/kinlock-contracts/badge`; verified on a real run — merged 2026-10-26, confirmed live at `api.scorecard.dev` (score 4.2, informing `M1-47`) |
+| M1-47 | Scorecard remediation, Tier 1: pin every `uses:` in every workflow file to a commit SHA (`Pinned-Dependencies` was 1/10); scope `bindings.yml`'s `contents: write` to the job, not the workflow (`Token-Permissions` was 0/10); add `.github/dependabot.yml` for `cargo` + `github-actions` (`Dependency-Update-Tool` was 0/10); enable CodeQL (`SAST` was 0/10) — default setup for `actions`+`javascript-typescript` (enabled via the Code Scanning API; `rust` isn't accepted by that API yet despite being GA), plus a dedicated advanced-setup `codeql-rust.yml` for Rust | contracts | P2 | IN PROGRESS | M1-45 | Next scheduled Scorecard run shows `Pinned-Dependencies` and `Token-Permissions` at 10/10, `Dependency-Update-Tool` at a non-zero score, and `SAST` at a non-zero score; verified against a real re-run, not assumed |
 
 ### 6.2 `kinlock-registry`
 
@@ -537,6 +538,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-10-26 | `ci/pin-action-shas` | contracts | M1-45 DONE, M1-47 IN PROGRESS | Confirmed `M1-45` live: fetched `api.scorecard.dev/projects/github.com/Kinlock-Org/kinlock-contracts` directly, score 4.2/10, 18 checks reported — marked `DONE`. Started Tier 1 remediation (`M1-47`): pinned `actions/checkout@v4`, `dtolnay/rust-toolchain@master`, `actions/setup-node@v4`, `actions/setup-python@v5` to commit SHAs across `ci.yml`, `bindings.yml`, `docs-in-sync.yml`, `roadmap-check.yml`, `malware-scan.yml` (resolved via `gh api repos/{owner}/{repo}/git/refs/tags/{tag}`, not guessed); moved `bindings.yml`'s `contents: write` from workflow-level to job-level; added `.github/dependabot.yml`; enabled CodeQL default setup for `actions`+`javascript-typescript` via `gh api --method PATCH .../code-scanning/default-setup` (confirmed I have org `admin` role and repo `admin:true` permission already, via the account active this session — no new credential needed); added `.github/workflows/codeql-rust.yml` (advanced setup) for Rust specifically, since the default-setup API rejects `"rust"` as a language value despite CodeQL's Rust support being GA. Left `IN PROGRESS` pending a real Scorecard re-run confirming the score improvements. |
 | 2026-10-26 | `ci/scorecard` | contracts | M1-45 IN PROGRESS | Added `.github/workflows/scorecard.yml` (OpenSSF Scorecard), copied from the current canonical `ossf/scorecard/.github/workflows/scorecard-analysis.yml` (pinned to commit SHAs: `actions/checkout@3d3c42e` v7.0.1, `ossf/scorecard-action@fa7117d` v2.5.0, `actions/upload-artifact@cf430e0` v7.0.2, `github/codeql-action/upload-sarif@24c5418` v4.38.3). `push`-to-`main` and weekly schedule only — `pull_request` is documented as experimental so not added. `publish_results: true` since this repo is public (confirmed via `gh repo view`), enabling the public badge and `api.scorecard.dev` results. **Update 2026-10-26:** added the Scorecard badge to `README.md`'s badge row, per request. **Update 2026-10-26 (2):** renumbered this row from `M1-43` to `M1-45` -- it collided with `kinlock-registry`'s own pending `M1-43` (malware-scan, PR #23, still open): two different rows in the shared Phase-2 `M1-` id space claimed the same id. `M1-44` is also already claimed (`kinlock-registry`'s Scorecard row, PR #24), so `M1-45` is the first free id across both repos' pending work. **Update 2026-10-26 (3):** this branch predates `M1-46`'s `.cargo/audit.toml` fix (PR #40), so its `dependency-audit` check was failing on the same already-diagnosed `RUSTSEC-2026-0387` advisory; applied the same suppression here too rather than waiting on #40 to merge. Verified: `cargo audit` exits 0, `cargo fmt --all -- --check` clean. Left `IN PROGRESS` pending the first real Scorecard run confirming the job executes and publishes successfully. |
 | 2026-10-23 | `ci/malware-scan` (#38) | contracts | M1-42 DONE | Follow-up: the first CI run on this PR caught the unscoped Semgrep call also scanning `.github/workflows/*.yml`, flagging unpinned action tags and a real shell-injection pattern in the existing `roadmap-check.yml` (`${{ github.base_ref }}` interpolated into a `run:` step) — out of this job's scope (CI-config hardening is a separate, repo-wide decision), flagged here rather than fixed silently. Rescoped the scan to `contracts/kinlock/src`; all five checks (`contract`, `dependency-audit`, `docs-in-sync`, `roadmap-check`, `source-scan`) now pass on PR #38. `M1-42` confirmed `DONE`. |
 | 2026-10-23 | `ci/malware-scan` | contracts | M1-42 IN PROGRESS | Added `.github/workflows/malware-scan.yml`: `cargo audit` (RustSec advisory DB) plus a Semgrep source scan (`--config auto --error`) on every PR. Verified locally: `cargo install cargo-audit --locked && cargo audit` runs clean against `Cargo.lock` (1 unmaintained-crate warning on `paste`, no vulnerabilities, exit 0); Semgrep (clean venv, v1.136.0) finds 0 findings across `contracts/kinlock/src`. Left `IN PROGRESS` pending the first real PR run confirming the job executes green in GitHub Actions. |
