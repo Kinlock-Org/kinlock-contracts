@@ -17,11 +17,34 @@
 //! public interface -- no access to the unit tests' private `Setup`/`LockFixture` helpers
 //! in `src/test/mod.rs`.
 //!
-//! "Compare local estimates to testnet simulation": the deployed testnet contract
-//! (`DEPLOYMENTS.md`) predates the current source significantly, so a byte-for-byte
-//! comparison against it would not be apples to apples. That comparison needs a fresh
-//! testnet deploy, which is a deploy action -- left for a follow-up with the owner's
-//! go-ahead rather than done here silently.
+//! "Compare local estimates to testnet simulation": done against a fresh testnet deploy
+//! (owner's go-ahead; `DEPLOYMENTS.md`), by simulating each call with the real `stellar`
+//! CLI (`contract invoke --send=no --very-verbose`) and decoding the returned
+//! `SorobanTransactionData` XDR for its real `instructions`/`write_bytes`. Local native-Rust
+//! `cpu_instruction_cost()` consistently undercounts the real WASM-VM `instructions` figure
+//! (the docs.rs page for `Budget` says native runs "may underestimate" this; now measured,
+//! not just noted): roughly 4-5x for the fund-moving calls, 8-12x for the lighter
+//! registry/read calls (smaller absolute numbers amplify the ratio). Local `memory_bytes_cost()`
+//! and the network's `write_bytes` measure different things entirely (VM heap vs. ledger
+//! storage footprint) and aren't directly comparable.
+//!
+//! | Entry point      | local cpu | testnet instructions | ratio | testnet write_bytes |
+//! |-------------------|----------:|----------------------:|------:|---------------------:|
+//! | create_lock       |   483,305 |             2,244,689 |  4.6x |                1,620 |
+//! | release           |   483,958 |             2,120,124 |  4.4x |                1,628 |
+//! | refund            |   424,011 |             2,111,536 |  5.0x |                1,624 |
+//! | decline           |   426,104 |             1,997,922 |  4.7x |                1,624 |
+//! | bump_lock         |   132,728 |               756,966 |  5.7x |                    0 |
+//! | register_payee    |   145,715 |             1,742,500 | 12.0x |                  556 |
+//! | update_payout     |   169,263 |             1,771,597 | 10.5x |                  556 |
+//! | set_status        |   187,258 |             1,823,953 |  9.7x |                  560 |
+//! | get_lock          |    90,975 |               732,050 |  8.0x |                    0 |
+//!
+//! Every real figure is tiny next to Mainnet's actual per-transaction cap of 100,000,000
+//! instructions (confirmed against Stellar's own resource-limits docs, not assumed): the
+//! worst case here, `create_lock`, uses about 2.2% of it. The divergence is consistent and
+//! well understood (WASM execution vs. native Rust), not a red flag, and doesn't call for
+//! raising any ceiling below. `M1-16` is `DONE`.
 
 use soroban_sdk::testutils::cost_estimate::CostEstimate;
 use soroban_sdk::testutils::{Address as _, IssuerFlags, Ledger as _};
