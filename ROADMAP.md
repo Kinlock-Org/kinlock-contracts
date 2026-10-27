@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Last updated** | 2026-10-26 (`M1-22` internal contract review: 16/18 checklist items pass, 2 blocked and already identified) |
+| **Last updated** | 2026-10-27 (`M1-30` DONE; `M1-16` IN PROGRESS: budget tests added, testnet-simulation comparison pending) |
 | **Docs baseline** | v0.3, worldwide scope (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`, `AGENTS.md`, `CLAUDE.md`, `project_structure.md`) |
 | **Current phase** | Phase 0 (Foundations) → starting Phase 1 (M0 Validate) |
 | **Readiness** | See [§3](#3-progress-snapshot) |
@@ -129,7 +129,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 16 | 1 | 2 | 0 | 0 | 0 | 84% |
 | 1 M0 Validate | 17 | 1 | 6 | 10 | 0 | 0 | 0 | 6% |
-| 2 Contract + registry | 45 | 28 | 4 | 13 | 0 | 0 | 0 | 62% |
+| 2 Contract + registry | 45 | 29 | 5 | 11 | 0 | 0 | 0 | 64% |
 | 3 SDK + indexer | 21 | 14 | 3 | 4 | 0 | 0 | 0 | 67% |
 | 4 App | 27 | 15 | 7 | 5 | 0 | 0 | 0 | 56% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 10 | 5 | 1 | 4 | 0 | 0 | 0 | 50% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **215** | **79** | **22** | **89** | **0** | **25** | **0** | **42%** |
+| **All** | **215** | **80** | **23** | **87** | **0** | **25** | **0** | **42%** |
 
 ---
 
@@ -225,7 +225,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-13 | Boundary tests: `now == unlock_at`, `expires_at - 1`, `expires_at` | contracts | P0 | DONE | M1-06, M1-07 | Pass |
 | M1-14 | Property tests for invariants 1–10 | contracts | P0 | DONE | M1-11 | `proptest` sequences green over many runs |
 | M1-15 | Integration tests: C-address sender and payee, missing/unauthorized trustline, partial release then refund/decline, allowlist removal with open locks | contracts | P0 | TODO | M1-11 | Pass on local network |
-| M1-16 | Budget tests with `soroban-budget-assert`; compare local estimates to testnet simulation | contracts | P0 | TODO | M1-11 | Budgets recorded; divergence measured and documented |
+| M1-16 | Budget tests with `soroban-budget-assert`; compare local estimates to testnet simulation | contracts | P0 | IN PROGRESS | M1-11, M1-30 | Budgets recorded; divergence measured and documented |
 | M1-17 | `deploy.sh` (testnet default, mainnet guarded), `deployments/testnet.json`, generated `DEPLOYMENTS.md` | contracts | P0 | DONE | M1-11 | Deploys to testnet; mainnet requires flag and confirmation |
 | M1-18 | Generate TS bindings and publish pipeline | contracts | P0 | DONE | M1-17, F-11 | Package published on tag; SDK can consume |
 | M1-19 | Deploy to testnet with a test multisig admin; add test attesters and testnet USDC | contracts | P0 | DONE | M1-17 | Contract ID recorded in `DEPLOYMENTS.md` |
@@ -233,7 +233,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-21 | Contract `README`, `SECURITY.md`, and threat-model doc linked to invariants | contracts | P1 | DONE | M1-14 | Reviewer can map each threat to a control |
 | M1-22 | Internal review using the `CLAUDE.md` contract checklist; fix findings | contracts | P0 | IN PROGRESS | M1-16 | Checklist completed with evidence. 16 of 18 items pass with evidence (see 2026-10-26 Changelog entry); 2 blocked: C-address caller tests don't exist in the merged suite yet (fix already written, in open PR #37 -- `test_c_address_sender_lifecycle`), and budget tests can't run until `M1-16` sources `soroban-budget-assert`. Row stays `IN PROGRESS` until both land |
 | M1-23 | Decide optional `refund_to` (ADR) | contracts | P2 | TODO | M1-05 | ADR accepted or declined |
-| M1-30 | Source `soroban-budget-assert` (not published on crates.io) or choose an alternative for budget tests | contracts | P0 | TODO | — | Crate usable from CI; `M1-16` can start |
+| M1-30 | Source `soroban-budget-assert` (not published on crates.io) or choose an alternative for budget tests | contracts | P0 | DONE | — | Crate usable from CI; `M1-16` can start — resolved: the crate doesn't exist anywhere findable (confirmed via live search, not just absent from crates.io); used the SDK's own first-party `Env::cost_estimate()`/`.budget()` metering API instead (soroban-sdk 28.0.0, `testutils` feature, verified against the real docs.rs pages for this exact pinned version), so no new dependency was needed at all |
 | M1-31 | Finish M1-03/M1-04 "Done when" once locks exist: tests that pause and token removal block only `create_lock`, and that `update_payout` leaves existing locks' payout unchanged | contracts | P0 | DONE | M1-05 | Tests pass; M1-03 and M1-04 can be marked `DONE` |
 | M1-32 | Upgrade auth and success test with a real uploaded WASM (an unknown hash also fails, so today's test can't isolate auth) | contracts | P0 | DONE | M1-17 | Upgrade signed by admin succeeds and asserts `env.auths()`; intruder-signed upgrade fails |
 | M1-33 | Reconcile `MAX_LOCK_DURATION` (180 days) with the network max entry TTL: testnet is 3,110,400 ledgers (~180 days at 5 s), so lock + 30-day grace caps expiry at ~150 days today. Set tests to the real max TTL | contracts | P0 | DONE | DEC-07 | Constant and tests match the network; ADR updated |
@@ -539,6 +539,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-10-27 | `feat/budget-tests` | contracts | M1-30 DONE, M1-16 IN PROGRESS | `M1-30`: `soroban-budget-assert` doesn't exist anywhere findable — not on crates.io, and no GitHub repo or docs page turned up in a live search either — so there was nothing to "source." Used the SDK's own first-party metering API instead (`Env::cost_estimate().budget()`, soroban-sdk 28.0.0, `testutils` feature; every method name and signature verified against the real docs.rs pages for this exact pinned version, not guessed). No new dependency needed. **`M1-16`**: added `contracts/kinlock/tests/budget.rs`, 9 tests covering every state-changing entry point (`create_lock`, `release`, `refund`, `decline`, `bump_lock`, `register_payee`, `update_payout`, `set_status`) plus one read (`get_lock`). Each asserts CPU instructions and memory stay under a ceiling set at roughly 2x the real measured baseline (e.g. `create_lock` cpu=483,305 ceiling=1,000,000; `release` cpu=483,958 ceiling=1,000,000; `refund`/`decline` ~425,000 ceiling=900,000; the registry/admin calls and `get_lock` are all under 190,000 cpu with ceilings at 200,000–400,000) — tight enough to catch a real regression, loose enough not to flake on minor cost-model changes. Resource-limit enforcement against real Mainnet limits is already on by default in this SDK version, so a call too expensive to run on Mainnet would fail the test on its own regardless of these ceilings. Verified: `cargo fmt --all -- --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test --workspace` (107 unit + 9 budget + 1 property test, all green), `stellar contract build`, all actually run. Left `IN PROGRESS`: the row's other half, "compare local estimates to testnet simulation," is not done — the deployed testnet contract in `DEPLOYMENTS.md` predates the current source significantly, so comparing against it wouldn't be apples to apples, and a fresh deploy is a deploy action (`AGENTS.md` §2 ask-first) not taken here without the owner's go-ahead. |
 | 2026-10-27 | Dependabot PR #48 (`dependabot/github_actions/github/codeql-action/upload-sarif-4.39.1`) | contracts | no row changes | Updated this branch with `main` (GitHub's branch-update API, no conflicts) so `roadmap-check` runs against current `main` instead of a stale pre-fix snapshot. That update's own commit is attributed to a maintainer account, not Dependabot, so the job's `dependabot[bot]` exemption correctly does not apply to it — this entry satisfies the same check for real. |
 | 2026-10-27 | Dependabot PR #46 (`dependabot/cargo/proptest-1.12.0`) | contracts | no row changes | Updated this branch with `main` (GitHub's branch-update API, no conflicts) so `roadmap-check` runs against current `main` instead of a stale pre-fix snapshot. That update's own commit is attributed to a maintainer account, not Dependabot, so the job's `dependabot[bot]` exemption correctly does not apply to it — this entry satisfies the same check for real. |
 | 2026-10-27 | Dependabot PR #45 (`dependabot/github_actions/actions/setup-node-7.1.0`) | contracts | no row changes | Updated this branch with `main` (GitHub's branch-update API, no conflicts) so `roadmap-check` runs against current `main` instead of a stale pre-fix snapshot. That update's own commit is attributed to a maintainer account, not Dependabot, so the job's `dependabot[bot]` exemption correctly does not apply to it — this entry satisfies the same check for real. |
