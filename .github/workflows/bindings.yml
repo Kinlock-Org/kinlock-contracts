@@ -45,7 +45,7 @@ jobs:
       - name: Build and pack
         working-directory: bindings/typescript
         run: |
-          npm install
+          npm ci
           npm run build
           npm pack
       - name: Attach to a GitHub Release (never re-uploads an existing version)
