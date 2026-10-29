@@ -1,6 +1,7 @@
 # kinlock-contracts
 
 [![CI](https://github.com/Kinlock-Org/kinlock-contracts/actions/workflows/ci.yml/badge.svg)](https://github.com/Kinlock-Org/kinlock-contracts/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Kinlock-Org/kinlock-contracts/badge)](https://scorecard.dev/viewer/?uri=github.com/Kinlock-Org/kinlock-contracts)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 The `kinlock` Soroban contract — payee registry and lock vault in one contract, modular code — plus its tests, deploy tooling, and generated TypeScript bindings.
