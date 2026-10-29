@@ -85,7 +85,7 @@ Dependency direction: `kinlock-contracts` → generated TS bindings → `kinlock
 |---|---|---|
 | Contract | Rust, `soroban-sdk`, Stellar CLI | One contract, modular code (`registry`, `vault` modules) |
 | Contract testing | `cargo test`, `proptest` | Property tests required for fund invariants |
-| Cost assertions | `soroban-budget-assert` in CI | Plus periodic testnet simulation to compare estimates |
+| Cost assertions | Budget-ceiling tests in CI: `contracts/kinlock/tests/budget.rs`, run by the `contract` job's `cargo test --workspace` | Comparing local estimates against testnet simulation is still open (`M1-16`) |
 | Token | USDC via SAC (SEP-41), allowlisted | 7 decimals; amounts `i128` |
 | Client libs | `@stellar/stellar-sdk`; generated bindings via `stellar contract bindings typescript` | Published from `kinlock-contracts` |
 | Frontend | Next.js (App Router), TypeScript, Tailwind | Mobile-first. **i18n-ready:** all UI strings externalized from the start; `Intl` APIs for numbers, currencies, dates. Full translations deferred |
@@ -252,7 +252,7 @@ Partial releases keep the lock Open. Refund or decline after partial release ret
 - Extend persistent TTL on create to `expires_at + TTL_GRACE`; extend completed locks for a receipt-retention period if the network allows; keep `bump_lock` permissionless.
 - Time uses ledger timestamp; treat it as approximate to the ledger close interval.
 - Contract storage is versioned. Upgrades require a migration test against a snapshot of testnet state.
-- Budgets per entry point enforced with `soroban-budget-assert`.
+- Budgets per entry point enforced in CI by `contracts/kinlock/tests/budget.rs`, using the SDK's own `Env::cost_estimate()` (`testutils` feature). No `soroban-budget-assert`: that crate is not published on crates.io and no repo or docs page carries that name (`M1-30` resolved it this way, so no new dependency was added).
 
 ## 5. Off-chain design
 
@@ -436,7 +436,7 @@ Mainnet gating: external audit → legal review → capped beta (per-lock and gl
 
 - **Unit tests** for every entry point: success and each failure path (including each `create_lock` validation).
 - **Property tests (`proptest`)**: random sequences of create, release, refund, decline, status changes, and time advances against the §4.6 invariants.
-- **Budget assertions** with `soroban-budget-assert`; compare local estimates against testnet simulation.
+- **Budget assertions** in `contracts/kinlock/tests/budget.rs`: CPU and memory ceilings per entry point, set at roughly 2x the measured baseline so a cost regression trips the test before it trips Mainnet's hard resource limits. Comparing local estimates against testnet simulation remains open (`M1-16`).
 - **Integration tests** on the local quickstart network through the SDK, including C-address sender and payee, missing trustline, and boundary timestamps (`now == expires_at`).
 - **Indexer tests:** replay recorded event fixtures; idempotency; cursor recovery; mixed `schema_version`.
 - **Upgrade test:** migrate a snapshot of testnet state to a new WASM and re-run invariants.
