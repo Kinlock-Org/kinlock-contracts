@@ -1,0 +1,23 @@
+# cargo-audit config (auto-discovered, no CLI flag needed). See AGENTS.md hard
+# rule on checked arithmetic / no invented Stellar-Soroban behavior: every entry
+# here must be a verified, dated, upstream-tracked exception, never a blanket
+# suppression.
+[advisories]
+ignore = [
+  # RUSTSEC-2026-0387 (crypto-bigint 0.5.5): timing-variability in supposedly
+  # constant-time operations. Pulled in transitively via
+  # soroban-env-host@28.0.2 -> elliptic-curve@0.13.8 -> crypto-bigint@0.5.5
+  # (used for the host's k256/p256 ECDSA support), itself pinned by
+  # soroban-sdk@28.0.0, which kinlock-contracts pins directly. Verified
+  # 2026-10-26 that this cannot be bumped in place: elliptic-curve@0.13.8
+  # hard-requires `crypto-bigint = "^0.5"`, incompatible with the patched
+  # 0.7.6 -- and 0.7.6 is itself yanked by its own author, so it isn't a
+  # valid pin target regardless. The only real fix is an upstream
+  # stellar/rs-soroban-sdk release that moves to a patched elliptic-curve/
+  # k256/p256 chain; the only newer soroban-sdk release today is a
+  # pre-release (30.0.0-rc.1), not something to put under a financial
+  # contract without real testing. Stopgap only -- revisit when a stable
+  # soroban-sdk release lands, or sooner if a lower-risk path appears.
+  # Tracked in ROADMAP.md as DEC-24 (see kinlock-contracts#40).
+  "RUSTSEC-2026-0387",
+]
