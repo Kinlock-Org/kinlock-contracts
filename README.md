@@ -49,7 +49,7 @@ Toolchain is pinned in `rust-toolchain.toml` (Rust 1.96.1, `wasm32v1-none`); `so
 ## Tests
 
 - **107 unit tests** in `contracts/kinlock/src/test/`: every entry point's success path and every failure path, each `create_lock` validation, explicit-auth assertions (`env.auths()`, not only `mock_all_auths`), boundary timestamps, TTL behavior, and an upgrade test using the real compiled WASM.
-- **Property tests** in `contracts/kinlock/tests/properties.rs`: random sequences of create, release, refund, decline, status and payout changes, time jumps, pause, allowlist and roster changes, and frozen accounts, with all ten invariants re-checked after every step.
+- **Property tests** in `contracts/kinlock/tests/properties.rs`: random sequences of create, release, refund, decline, status and payout changes, time jumps, pause, allowlist and roster changes, and frozen accounts, with all ten invariants re-checked after every step (invariants 1–9 asserted directly in `check_invariants()`, invariant 10 asserted across each operation failure).
 - `tests/budget.rs` and `tests/integration.rs` are **placeholders** (`M1-16`, `M1-15`); `soroban-budget-assert` isn't on crates.io, so `M1-30` has to source it first.
 
 CI runs fmt → build → a bindings-freshness diff → clippy `-D warnings` → `cargo test --workspace`.
