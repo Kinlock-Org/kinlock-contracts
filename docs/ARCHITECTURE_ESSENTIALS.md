@@ -32,7 +32,7 @@
 Flow: contracts → bindings → sdk → app. Registry is data only.
 
 ## 4. Stack (pin current stable versions at start)
-- Rust + `soroban-sdk`; `cargo test` + `proptest`; `soroban-budget-assert` in CI
+- Rust + `soroban-sdk`; `cargo test` + `proptest`; budget-ceiling tests in CI (`tests/budget.rs`, using the SDK's own `Env::cost_estimate()`)
 - USDC via SAC (SEP-41), allowlisted; 7 decimals; `i128`
 - `@stellar/stellar-sdk` + generated TS bindings
 - Next.js (App Router) + TypeScript + Tailwind
