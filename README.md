@@ -72,6 +72,8 @@ Current testnet: `CCSHDQFRYFC3AHV5NE6ULQW6X2CMG5RPANBORDXJGSUD6UKECASJQBRI`, 2-o
 ## Read first
 
 - `docs/ARCHITECTURE_ESSENTIALS.md` (short; read at the start of every task)
+- [`docs/ERRORS.md`](docs/ERRORS.md): contract error-code reference and caller guidance
+- [`docs/EVENTS.md`](docs/EVENTS.md): contract event catalog, schemas, and stroops scale
 - `AGENTS.md` (rules for humans and agents) and `CLAUDE.md`
 - `ROADMAP.md`: **every PR updates it**
 - [`SECURITY.md`](SECURITY.md): threat model, mapped to the invariants and the tests that check each one
