@@ -1,0 +1,49 @@
+# CodeQL analysis for this repo. GitHub's default code-scanning setup can't be used
+# here: its Code Scanning API doesn't accept "rust" as a language value (despite
+# CodeQL's Rust support being GA since Oct 2025), and GitHub refuses to run an
+# advanced-setup workflow for one language alongside default setup for others
+# ("CodeQL analyses from advanced configurations cannot be processed when the
+# default setup is enabled") -- so all three languages this repo has are analyzed
+# here, in one advanced-setup workflow, matching the pattern GitHub's own starter
+# workflow uses for multi-language repos.
+name: "CodeQL"
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '30 2 * * 6'
+permissions:
+  contents: read
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: rust
+            build-mode: none
+          - language: javascript-typescript
+            build-mode: none
+          - language: actions
+            build-mode: none
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          category: "/language:${{ matrix.language }}"
