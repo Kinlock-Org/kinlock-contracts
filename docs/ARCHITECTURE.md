@@ -85,7 +85,7 @@ Dependency direction: `kinlock-contracts` → generated TS bindings → `kinlock
 |---|---|---|
 | Contract | Rust, `soroban-sdk`, Stellar CLI | One contract, modular code (`registry`, `vault` modules) |
 | Contract testing | `cargo test`, `proptest` | Property tests required for fund invariants |
-| Cost assertions | `soroban-budget-assert` in CI | Plus periodic testnet simulation to compare estimates |
+| Cost assertions | `soroban-budget-assert` planned for CI (`M1-16`) | Plus periodic testnet simulation to compare estimates |
 | Token | USDC via SAC (SEP-41), allowlisted | 7 decimals; amounts `i128` |
 | Client libs | `@stellar/stellar-sdk`; generated bindings via `stellar contract bindings typescript` | Published from `kinlock-contracts` |
 | Frontend | Next.js (App Router), TypeScript, Tailwind | Mobile-first. **i18n-ready:** all UI strings externalized from the start; `Intl` APIs for numbers, currencies, dates. Full translations deferred |
@@ -199,7 +199,7 @@ struct Lock {
 
 | Function | Auth | Behavior |
 |---|---|---|
-| `create_lock(token, payee_id, tranches, ref_hash, expires_at)` | sender | Validates (see below), snapshots payout, pulls `total` from sender, stores lock, extends TTL, emits event |
+| `create_lock(sender, token, payee_id, tranches: Vec<TrancheInput>, ref_hash, expires_at)` | sender | Validates (see below), snapshots payout, pulls `total` from sender, stores lock, extends TTL, emits event |
 | `release(lock_id, idx)` | `lock.payout` | Requires state Open, payee Active, `unlock_at ≤ now < expires_at`, tranche not released. Sets flags **before** transferring |
 | `refund(lock_id)` | sender | Requires Open and (`now ≥ expires_at` or payee Revoked or (payee Suspended and `now ≥ status_changed_at + GRACE`)). Returns remainder |
 | `decline(lock_id)` | `lock.payout` | Any time while Open. Returns remainder to sender |
@@ -252,7 +252,7 @@ Partial releases keep the lock Open. Refund or decline after partial release ret
 - Extend persistent TTL on create to `expires_at + TTL_GRACE`; extend completed locks for a receipt-retention period if the network allows; keep `bump_lock` permissionless.
 - Time uses ledger timestamp; treat it as approximate to the ledger close interval.
 - Contract storage is versioned. Upgrades require a migration test against a snapshot of testnet state.
-- Budgets per entry point enforced with `soroban-budget-assert`.
+- Target: budgets per entry point, to be enforced with a budget-test crate (`M1-16`, blocked by `M1-30`). Not yet implemented.
 
 ## 5. Off-chain design
 
@@ -436,7 +436,7 @@ Mainnet gating: external audit → legal review → capped beta (per-lock and gl
 
 - **Unit tests** for every entry point: success and each failure path (including each `create_lock` validation).
 - **Property tests (`proptest`)**: random sequences of create, release, refund, decline, status changes, and time advances against the §4.6 invariants.
-- **Budget assertions** with `soroban-budget-assert`; compare local estimates against testnet simulation.
+- **Budget assertions** (target): budgets per entry point to be enforced with `soroban-budget-assert` in a dedicated budget-test crate (`M1-16`, blocked by `M1-30`; not yet implemented); compare local estimates against testnet simulation.
 - **Integration tests** on the local quickstart network through the SDK, including C-address sender and payee, missing trustline, and boundary timestamps (`now == expires_at`).
 - **Indexer tests:** replay recorded event fixtures; idempotency; cursor recovery; mixed `schema_version`.
 - **Upgrade test:** migrate a snapshot of testnet state to a new WASM and re-run invariants.
