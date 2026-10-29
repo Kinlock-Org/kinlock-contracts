@@ -199,7 +199,7 @@ struct Lock {
 
 | Function | Auth | Behavior |
 |---|---|---|
-| `create_lock(token, payee_id, tranches, ref_hash, expires_at)` | sender | Validates (see below), snapshots payout, pulls `total` from sender, stores lock, extends TTL, emits event |
+| `create_lock(sender, token, payee_id, tranches: Vec<TrancheInput>, ref_hash, expires_at)` | sender | Validates (see below), snapshots payout, pulls `total` from sender, stores lock, extends TTL, emits event |
 | `release(lock_id, idx)` | `lock.payout` | Requires state Open, payee Active, `unlock_at ≤ now < expires_at`, tranche not released. Sets flags **before** transferring |
 | `refund(lock_id)` | sender | Requires Open and (`now ≥ expires_at` or payee Revoked or (payee Suspended and `now ≥ status_changed_at + GRACE`)). Returns remainder |
 | `decline(lock_id)` | `lock.payout` | Any time while Open. Returns remainder to sender |
@@ -436,7 +436,7 @@ Mainnet gating: external audit → legal review → capped beta (per-lock and gl
 
 - **Unit tests** for every entry point: success and each failure path (including each `create_lock` validation).
 - **Property tests (`proptest`)**: random sequences of create, release, refund, decline, status changes, and time advances against the §4.6 invariants.
-- **Budget assertions** with `soroban-budget-assert`; compare local estimates against testnet simulation.
+- **Budget assertions (Target):** budgets per entry point, to be enforced with a budget-test crate (`M1-16`, blocked by `M1-30`). Not yet implemented.
 - **Integration tests** on the local quickstart network through the SDK, including C-address sender and payee, missing trustline, and boundary timestamps (`now == expires_at`).
 - **Indexer tests:** replay recorded event fixtures; idempotency; cursor recovery; mixed `schema_version`.
 - **Upgrade test:** migrate a snapshot of testnet state to a new WASM and re-run invariants.
