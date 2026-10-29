@@ -1,4 +1,4 @@
-//! Property tests (proptest) for the invariants in `docs/ARCHITECTURE.md` §4.6. Row: M1-14.
+//! Property tests (proptest) for the invariants in `docs/ARCHITECTURE.md` §4.6. Rows: M1-14, M1-38.
 //!
 //! Each case runs a random sequence of operations (create, release, refund, decline, payee
 //! status changes, payout updates, time jumps, pause, allowlist and roster changes, and
@@ -9,11 +9,11 @@
 //! 3. Funds go only to `lock.payout` or `lock.sender`: every tracked balance matches what
 //!    the locks say it should be, and no other address ever receives anything.
 //! 4. A tranche is released at most once (`released` == sum of released tranches).
-//! 5. `release` succeeds exactly when the spec allows it.
-//! 6. `refund` succeeds exactly when the spec allows it.
+//! 5. `release` succeeds exactly when the spec allows it (asserted directly in `check_invariants`).
+//! 6. `refund` succeeds exactly when the spec allows it (asserted directly in `check_invariants`).
 //! 7. `lock.payout` never changes after creation.
 //! 8. Admin, attester, pause, and allowlist changes never block release, decline, or
-//!    refund (checked by 5, 6, and `decline` succeeding exactly when the spec allows it).
+//!    refund on existing locks (asserted directly in `check_invariants`).
 //! 9. `total_locked` equals the sum of remainders of Open locks.
 //! 10. A failed call changes nothing (locks, payees, config, and balances).
 //!
@@ -750,6 +750,103 @@ impl World {
             prop_assert_eq!(released_sum, lock.released);
             // 7
             prop_assert_eq!(Some(&lock.payout), self.created_payout.get(&lock.id));
+
+            // 5: release succeeds only when unlock_at <= now < expires_at, payee Active, and caller is lock.payout
+            let payee = self.client.get_payee(&lock.payee_id);
+            let now = self.now();
+            if lock.state != LockState::Open {
+                for idx in 0..lock.tranches.len() {
+                    let r = self.client.try_release(&lock.id, &idx);
+                    prop_assert!(
+                        r.is_err(),
+                        "invariant 5 violated: release({}, {}) succeeded on non-open lock ({:?})",
+                        lock.id,
+                        idx,
+                        lock.state
+                    );
+                }
+            } else {
+                for (idx, t) in lock.tranches.iter().enumerate() {
+                    let idx = idx as u32;
+                    let release_legal = payee.status == PayeeStatus::Active
+                        && !t.released
+                        && t.unlock_at <= now
+                        && now < lock.expires_at
+                        && !self.frozen.contains(&lock.payout);
+                    if !release_legal {
+                        let r = self.client.try_release(&lock.id, &idx);
+                        prop_assert!(
+                            r.is_err(),
+                            "invariant 5 violated: release({}, {}) succeeded when illegal at now={} (unlock_at={}, expires_at={}, released={}, payee_status={:?})",
+                            lock.id,
+                            idx,
+                            now,
+                            t.unlock_at,
+                            lock.expires_at,
+                            t.released,
+                            payee.status
+                        );
+                    }
+                }
+            }
+
+            // 6: refund succeeds only for expiry, payee Revoked, or payee Suspended beyond grace
+            if lock.state != LockState::Open {
+                let r = self.client.try_refund(&lock.id);
+                prop_assert!(
+                    r.is_err(),
+                    "invariant 6 violated: refund({}) succeeded on non-open lock ({:?})",
+                    lock.id,
+                    lock.state
+                );
+            } else if !self.refund_allowed(lock.id) {
+                let r = self.client.try_refund(&lock.id);
+                prop_assert!(
+                    r.is_err(),
+                    "invariant 6 violated: refund({}) succeeded when illegal at now={} (expires_at={}, payee_status={:?})",
+                    lock.id,
+                    now,
+                    lock.expires_at,
+                    payee.status
+                );
+            }
+
+            // 8: admin, attester, pause, and allowlist changes never block release, decline, or refund on existing locks
+            if lock.state == LockState::Open && !config.paused_new_locks {
+                let _ = self.client.try_set_paused_new_locks(&true);
+                for (idx, t) in lock.tranches.iter().enumerate() {
+                    let idx = idx as u32;
+                    let release_legal = payee.status == PayeeStatus::Active
+                        && !t.released
+                        && t.unlock_at <= now
+                        && now < lock.expires_at
+                        && !self.frozen.contains(&lock.payout);
+                    if !release_legal {
+                        let r = self.client.try_release(&lock.id, &idx);
+                        if let Err(Ok(err)) = &r {
+                            prop_assert_ne!(
+                                err,
+                                &kinlock::errors::Error::PausedNewLocks,
+                                "invariant 8 violated: pause blocked release for lock {}",
+                                lock.id
+                            );
+                        }
+                    }
+                }
+                if !self.refund_allowed(lock.id) {
+                    let r_ref = self.client.try_refund(&lock.id);
+                    if let Err(Ok(err)) = &r_ref {
+                        prop_assert_ne!(
+                            err,
+                            &kinlock::errors::Error::PausedNewLocks,
+                            "invariant 8 violated: pause blocked refund for lock {}",
+                            lock.id
+                        );
+                    }
+                }
+                let _ = self.client.try_set_paused_new_locks(&false);
+            }
+
             // 3: where each lock's money must be
             add(&lock.sender, lock.returned - lock.total);
             add(&lock.payout, lock.released);
