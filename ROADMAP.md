@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Last updated** | 2026-11-01 (chore/bump-bindings-0.2.0: bindings 0.2.0) |
+| **Last updated** | 2026-11-01 (test/integration-suite-m1-15-m1-39: M1-15 DONE, M1-39 DONE; closes #28, #29) |
 | **Docs baseline** | v0.3, worldwide scope (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`, `AGENTS.md`, `CLAUDE.md`, `project_structure.md`) |
 | **Current phase** | Phase 0 (Foundations) → starting Phase 1 (M0 Validate) |
 | **Readiness** | See [§3](#3-progress-snapshot) |
@@ -129,7 +129,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 16 | 1 | 2 | 0 | 0 | 0 | 84% |
 | 1 M0 Validate | 17 | 1 | 6 | 10 | 0 | 0 | 0 | 6% |
-| 2 Contract + registry | 47 | 32 | 6 | 9 | 0 | 0 | 0 | 68% |
+| 2 Contract + registry | 47 | 34 | 6 | 7 | 0 | 0 | 0 | 72% |
 | 3 SDK + indexer | 21 | 14 | 3 | 4 | 0 | 0 | 0 | 67% |
 | 4 App | 27 | 15 | 7 | 5 | 0 | 0 | 0 | 56% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 10 | 5 | 1 | 4 | 0 | 0 | 0 | 50% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **217** | **83** | **24** | **85** | **0** | **25** | **0** | **43%** |
+| **All** | **217** | **85** | **24** | **83** | **0** | **25** | **0** | **44%** |
 
 ---
 
@@ -224,7 +224,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-12 | Explicit-auth tests (not only `mock_all_auths`) | contracts | P0 | DONE | M1-11 | Every privileged function asserts `env.auths()` |
 | M1-13 | Boundary tests: `now == unlock_at`, `expires_at - 1`, `expires_at` | contracts | P0 | DONE | M1-06, M1-07 | Pass |
 | M1-14 | Property tests for invariants 1–10 | contracts | P0 | DONE | M1-11 | `proptest` sequences green over many runs |
-| M1-15 | Integration tests: C-address sender and payee, missing/unauthorized trustline, partial release then refund/decline, allowlist removal with open locks | contracts | P0 | TODO | M1-11 | Pass on local network |
+| M1-15 | Integration tests: C-address sender and payee, missing/unauthorized trustline, partial release then refund/decline, allowlist removal with open locks | contracts | P0 | DONE | M1-11 | Full integration suite in contracts/kinlock/tests/integration.rs covering C-address callers, trustline authorization failures with zero-state movement, partial release remainder accounting, and allowlist removal with open locks |
 | M1-16 | Budget tests with `soroban-budget-assert`; compare local estimates to testnet simulation | contracts | P0 | IN PROGRESS | M1-11, M1-30 | Budgets recorded; divergence measured and documented |
 | M1-17 | `deploy.sh` (testnet default, mainnet guarded), `deployments/testnet.json`, generated `DEPLOYMENTS.md` | contracts | P0 | DONE | M1-11 | Deploys to testnet; mainnet requires flag and confirmation |
 | M1-18 | Generate TS bindings and publish pipeline | contracts | P0 | DONE | M1-17, F-11 | Package published on tag; SDK can consume |
@@ -242,7 +242,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-36 | Failed token transfers surface the token's error code, which collides with Kinlock codes (SAC code 10 decodes as `PayeeAlreadyExists`); decide on a dedicated error or document it for the SDK | contracts | P1 | TODO | — | Decision recorded; SDK handles it |
 | M1-37 | Script the local-network setup (identities, local USDC, contract, attester, token, one payee) so anyone can run the SDK smoke test locally | contracts | P1 | DONE | M2-02 | One command on a fresh local network prints the env block; the SDK smoke test passes with it |
 | M1-38 | Property harness asserts invariants 5, 6 and 8 directly in `check_invariants`, not only through the operation gates | contracts | P1 | DONE | M1-14 | Each has a named assertion; a deliberately weakened gate is caught; `src/` untouched |
-| M1-39 | Contract surface reference: `docs/ERRORS.md` (every `#[contracterror]` code) and `docs/EVENTS.md` (all seven events with fields and `schema_version`) | contracts | P1 | TODO | M1-02 | Both pages exist in canonical docs; counts match `errors.rs` and `events.rs`; `sync-docs.sh --check` passes |
+| M1-39 | Contract surface reference: `docs/ERRORS.md` (every `#[contracterror]` code) and `docs/EVENTS.md` (all seven events with fields and `schema_version`) | contracts | P1 | DONE | M1-02 | Both pages exist in canonical docs; counts match `errors.rs` and `events.rs`; `sync-docs.sh --check` passes |
 | M1-40 | Registry validator boundary-fixture corpus: 0-, 2- and 3-decimal `local_currency`, non-Latin and right-to-left `display_name`, `slug` at its length limit, rejected `payout_address` forms | registry | P1 | TODO | M1-24, M1-27 | Each rule has a fixture that exercises it; rejections asserted by message; at least three countries represented |
 | M1-41 | `validate` reports every rule failure in one run instead of stopping at the first | registry | P2 | TODO | M1-40 | A record with three violations lists all three with file, rule id and fix hint; deterministic output; existing cases unedited |
 | M1-42 | CI `malware-scan` job: `cargo audit` against the RustSec advisory database plus a Semgrep source scan on every PR | contracts | P1 | DONE | — | Job runs on every PR; a known-vulnerable crate or an injected malicious-pattern test case trips it; verified green on a real PR |
@@ -542,6 +542,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-11-01 | `test/integration-suite-m1-15-m1-39` | contracts | M1-15 DONE, M1-39 DONE | Closes #28, #29: implemented full end-to-end integration test suite in `contracts/kinlock/tests/integration.rs` covering C-address callers, trustline authorization failures with zero-state movement, partial release remainder accounting, and allowlist removal with open locks; documented test layout in `docs/TESTING.md`; published contract surface reference (`docs/ERRORS.md` and `docs/EVENTS.md`). All unit, budget, integration, and proptest invariant tests pass. |
 | 2026-11-01 | `chore/bump-bindings-0.2.0` | contracts | no row changes | Bump TypeScript contract bindings package (@kinlock/contract) to 0.2.0 and re-lock package-lock.json so fresh bindings including `create_direct_lock` (ADR-0031) can be released. |
 | 2026-11-01 | `feat/universal-dual-mode-locks` | contracts | M1-35 DONE, M1-51 DONE (new row) | Implemented Dual-Mode architecture (ADR-0031): added `create_direct_lock` entry point, updated `Lock.payee_id` to `Option<BytesN<32>>`, updated `release` and `refund` for direct locks, fixed M1-35 `unlock_at < expires_at` boundary validation. All 111 unit tests, 9 budget tests, and proptest invariants pass. Re-generated and built TypeScript bindings. |
 | 2026-10-29 | `docs/sync-canonical-budget-assertions` | kinlock-contracts | no row changes | Regenerated this repo’s read-only doc copies with the canonical script (`.github/scripts/sync-docs.sh`, write mode) after canonical `.github`#41 landed the budget-assertion correction. Exactly three files changed, 5 lines: `docs/ARCHITECTURE.md` (the stack table row, the Soroban constraints bullet, the testing bullet), `docs/ARCHITECTURE_ESSENTIALS.md` (the stack line) and root `AGENTS.md` (the `§8.1` comment on `cargo test --test budget`). Nothing here is hand-written or hand-edited: the three files are byte-identical to what `sync-docs.sh --check` expects, verified by re-running `--check` against canonical `.github` main `180f384` after writing, which now reports this repo in sync. This regeneration is required for **every** open PR in this repo, Dependabot’s included, because unlike `roadmap-check.yml:14` (which is `if: github.actor != 'dependabot[bot]'`, so a Dependabot PR skips it and that skip satisfies branch protection) `docs-in-sync.yml` has no actor exemption at all. Substance checked against the source rather than taken from the docs: `contracts/kinlock/tests/budget.rs` is on contracts `main` (blob `f666d34`) with exactly 9 `#[test]` functions; `contracts/kinlock/Cargo.toml` declares no `soroban-budget-assert` and pulls `soroban-sdk` with `features = ["testutils"]`; contracts `.github/workflows/ci.yml:40` runs `cargo test --workspace` in the `contract` job, which is what compiles and runs `tests/budget.rs`; and main run `40701473970`’s `contract` job conclusion is `success`. **Two canonical doc PRs deliberately not merged:** `.github`#33 and #35 rewrite these same lines to say budget assertions are “not yet implemented” / “planned”, which the evidence above contradicts, so merging either would put a false statement into the synced docs; both are reported to the owner with that evidence rather than merged or closed. **Flagged, not fixed** (redefining a gate is ask-first): roadmap row `M1-16`’s description still reads “Budget tests with `soroban-budget-assert`”, naming a crate that `M1-30` established does not exist, so as written `M1-16` can never satisfy its own Done-when; it stays `IN PROGRESS` and the wording is left for the owner. No source, contract, schema, workflow or test file changed, and no row status moved. |
