@@ -100,6 +100,20 @@ impl Kinlock {
 
     // ----- Vault -----
 
+    pub fn create_direct_lock(
+        env: Env,
+        sender: Address,
+        token: Address,
+        recipient: Address,
+        tranches: Vec<TrancheInput>,
+        ref_hash: BytesN<32>,
+        expires_at: u64,
+    ) -> Result<u64, Error> {
+        vault::create_direct_lock(
+            &env, &sender, &token, &recipient, &tranches, &ref_hash, expires_at,
+        )
+    }
+
     pub fn create_lock(
         env: Env,
         sender: Address,

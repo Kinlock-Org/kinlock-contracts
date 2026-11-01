@@ -10,6 +10,14 @@ The `kinlock` Soroban contract — payee registry and lock vault in one contract
 
 **Try it live (testnet):** [kinlock-app.vercel.app](https://kinlock-app.vercel.app) · **Docs:** [kinlock-org.github.io](https://kinlock-org.github.io) · **Deployment:** [`DEPLOYMENTS.md`](DEPLOYMENTS.md)
 
+## See it in action
+
+A 25-second overview of the contract layer — the only two exits money can take, the rules the code can't bend, the entry points, and the test + multisig guardrails. Testnet, unaudited.
+
+<video src="media/kinlock-brag.mp4" controls width="640" poster="media/kinlock-brag-poster.jpg"></video>
+
+> If the clip doesn't play inline, download it: [media/kinlock-brag.mp4](media/kinlock-brag.mp4).
+
 ## The contract
 
 One contract, `kinlock`. `#![no_std]`, no floating point, `i128` amounts with checked arithmetic, USDC via the Stellar Asset Contract from an admin allowlist.
@@ -68,6 +76,25 @@ Current testnet: `CCSHDQFRYFC3AHV5NE6ULQW6X2CMG5RPANBORDXJGSUD6UKECASJQBRI`, 2-o
 ## TypeScript bindings
 
 `bindings/typescript` holds the generated `@kinlock/contract` client (currently 0.1.0). Never hand-edit it: change the contract, run `scripts/gen-bindings.sh`, commit the result — CI fails on a stale copy. To release, bump with `scripts/gen-bindings.sh <x.y.z>`, merge, then push the tag `bindings-v<x.y.z>`; the `bindings` workflow attaches a `.tgz` to that GitHub Release (workflow `GITHUB_TOKEN`, no publish secret — ADR-0026). `kinlock-sdk` consumes it from there.
+
+## Maintainers
+
+| Name | Role | GitHub | Contact |
+|---|---|---|---|
+| Adenike Ajala | Core Maintainer (Smart Contracts & Protocol) | [@abrcrmb](https://github.com/abrcrmb) | [Email](mailto:adenikeajala2018@gmail.com) |
+| Ayobami Yazar | Core Maintainer (Full-Stack & Integrations) | [@YazarAyobami](https://github.com/YazarAyobami) | [Email](mailto:Yazarayobami76@gmail.com) |
+
+## Community & Discussions
+
+- **Discussions:** [GitHub Discussions](https://github.com/Kinlock-Org/kinlock-contracts/discussions)
+- **Documentation Portal:** [kinlock-org.github.io](https://kinlock-org.github.io)
+- **Report Security Vulnerabilities:** Follow [`SECURITY.md`](SECURITY.md)
+
+## Contributors
+
+Thanks to everyone who has contributed to Kinlock!
+
+[![Contributors](https://contrib.rocks/image?repo=Kinlock-Org/kinlock-contracts)](https://github.com/Kinlock-Org/kinlock-contracts/graphs/contributors)
 
 ## Read first
 
