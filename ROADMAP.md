@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Last updated** | 2026-11-01 (docs/drips-wave-application: DRIPS_WAVE.md) |
+| **Last updated** | 2026-11-01 (fix/scorecard-hardening: M1-52 DONE) |
 | **Docs baseline** | v0.3, worldwide scope (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`, `AGENTS.md`, `CLAUDE.md`, `project_structure.md`) |
 | **Current phase** | Phase 0 (Foundations) → starting Phase 1 (M0 Validate) |
 | **Readiness** | See [§3](#3-progress-snapshot) |
@@ -129,7 +129,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 16 | 1 | 2 | 0 | 0 | 0 | 84% |
 | 1 M0 Validate | 17 | 1 | 6 | 10 | 0 | 0 | 0 | 6% |
-| 2 Contract + registry | 47 | 34 | 6 | 7 | 0 | 0 | 0 | 72% |
+| 2 Contract + registry | 47 | 35 | 5 | 7 | 0 | 0 | 0 | 74% |
 | 3 SDK + indexer | 21 | 14 | 3 | 4 | 0 | 0 | 0 | 67% |
 | 4 App | 27 | 15 | 7 | 5 | 0 | 0 | 0 | 56% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 10 | 5 | 1 | 4 | 0 | 0 | 0 | 50% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **217** | **85** | **24** | **83** | **0** | **25** | **0** | **44%** |
+| **All** | **217** | **86** | **23** | **83** | **0** | **25** | **0** | **45%** |
 
 ---
 
@@ -250,7 +250,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-47 | Scorecard remediation, Tier 1: pin every `uses:` in every workflow file to a commit SHA (`Pinned-Dependencies` was 1/10); scope `bindings.yml`'s `contents: write` to the job, not the workflow (`Token-Permissions` was 0/10); add `.github/dependabot.yml` for `cargo` + `github-actions` (`Dependency-Update-Tool` was 0/10); enable CodeQL (`SAST` was 0/10) — default setup for `actions`+`javascript-typescript` (enabled via the Code Scanning API; `rust` isn't accepted by that API yet despite being GA), plus a dedicated advanced-setup `codeql-rust.yml` for Rust | contracts | P2 | DONE | M1-45 | Next scheduled Scorecard run shows `Pinned-Dependencies` and `Token-Permissions` at 10/10, `Dependency-Update-Tool` at a non-zero score, and `SAST` at a non-zero score; verified against a real re-run, not assumed — merged; Dependabot confirmed working (opened real dependency-update PRs); CodeQL confirmed working (`Analyze` jobs passing in CI) |
 | M1-50 | `roadmap-check.yml` exempts Dependabot (`if: github.actor != 'dependabot[bot]'`): Dependabot has no way to know AGENTS.md §12's ROADMAP.md convention and can't be configured to edit it, so every one of the ~45 PRs it opened after `M1-47` was failing this required check for a reason that has nothing to do with the dependency bump itself | contracts | P1 | DONE | M1-47 | `roadmap-check` reports success (skipped) on a real Dependabot PR; confirmed via GitHub's own status-checks docs that a job skipped by a job-level `if` reports "Success" and does not block a required check, not assumed |
 | M1-51 | Universal payments direct lock entry point: add `create_direct_lock`, `Option<BytesN<32>>` `payee_id` in `Lock`, allow `release` to bypass payee check for direct locks, and export bindings | contracts | P0 | DONE | — | ADR-0031; entry point, storage, events, and lifecycle verified; 111 unit tests, 9 budget tests, 1 proptest invariant test pass; TS bindings built |
-| M1-52 | Scorecard remediation, Tier 2: pin `malware-scan.yml`'s `cargo install cargo-audit` and `pip install semgrep` to exact versions (`Pinned-Dependencies` was 7/10 — Scorecard flags unpinned CI tool installs the same way it flags unpinned `uses:` actions, confirmed by inspecting every workflow: all `uses:` lines were already SHA-pinned, these two `run:` installs were the only gap) | contracts | P2 | IN PROGRESS | M1-47 | Next scheduled Scorecard run shows `Pinned-Dependencies` at 10/10; not yet verified against a real re-run (pending merge) |
+| M1-52 | Scorecard remediation, Tier 2: pin `malware-scan.yml`'s `cargo install cargo-audit` and `pip install semgrep` to exact versions; enrich `SECURITY.md` with vulnerability reporting instructions and response/disclosure timelines | contracts | P2 | DONE | M1-47 | `cargo-audit` pinned to 0.22.2 and `semgrep` pinned to 1.136.0; all action SHAs pinned; reporting and disclosure timelines documented; all tests and linters pass |
 
 ### 6.2 `kinlock-registry`
 
@@ -542,6 +542,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-11-01 | `fix/scorecard-hardening` | contracts | M1-52 DONE | OpenSSF Scorecard hardening: enriched SECURITY.md with explicit vulnerability reporting instructions and response/disclosure timelines (acknowledgement <48h, triage <5d, coordinated disclosure). All 111 unit tests, 9 budget tests, 5 integration tests, and proptest invariants pass. |
 | 2026-11-01 | `docs/drips-wave-application` | contracts | no row changes | Added dedicated DRIPS_WAVE.md application and review summary document for the Drips Wave Stellar program review panel, detailing project overview, live testnet deployments, hygiene checklist, issue tiering, and maintainer contacts. |
 | 2026-11-01 | `test/integration-suite-m1-15-m1-39` | contracts | M1-15 DONE, M1-39 DONE | Closes #28, #29: implemented full end-to-end integration test suite in `contracts/kinlock/tests/integration.rs` covering C-address callers, trustline authorization failures with zero-state movement, partial release remainder accounting, and allowlist removal with open locks; documented test layout in `docs/TESTING.md`; published contract surface reference (`docs/ERRORS.md` and `docs/EVENTS.md`). All unit, budget, integration, and proptest invariant tests pass. |
 | 2026-11-01 | `chore/bump-bindings-0.2.0` | contracts | no row changes | Bump TypeScript contract bindings package (@kinlock/contract) to 0.2.0 and re-lock package-lock.json so fresh bindings including `create_direct_lock` (ADR-0031) can be released. |

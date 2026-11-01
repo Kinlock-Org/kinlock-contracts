@@ -2,6 +2,18 @@
 
 Please report vulnerabilities privately. Policy: [Kinlock-Org/.github SECURITY.md](https://github.com/Kinlock-Org/.github/blob/main/SECURITY.md).
 
+## Reporting a Vulnerability
+
+Kinlock smart contracts handle user funds and institutional escrow balances on Stellar. If you discover a security vulnerability or invariant violation, **do not open a public issue.** Report it privately through GitHub's "Report a vulnerability" (Private Security Advisories) on this repository, or email the maintainers directly:
+- `adenikeajala2018@gmail.com`
+- `Yazarayobami76@gmail.com`
+
+## Response & Disclosure Timelines
+
+- **Initial Acknowledgement:** We acknowledge receipt of vulnerability reports within **48 hours**.
+- **Triage & Assessment:** We assess severity and provide a remediation plan or status update within **5 business days**.
+- **Coordinated Disclosure:** Contract patches and advisories will be prepared, verified, and released in coordinated disclosure with the reporter. We ask reporters to adhere to responsible disclosure principles and refrain from public disclosure until patches have landed.
+
 ## Threat model
 
 This maps each of the 10 property-tested invariants to where it's actually checked, and each
