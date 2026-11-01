@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Last updated** | 2026-11-01 (test/integration-suite-m1-15-m1-39: M1-15 DONE, M1-39 DONE; closes #28, #29) |
+| **Last updated** | 2026-11-01 (docs/drips-wave-application: DRIPS_WAVE.md) |
 | **Docs baseline** | v0.3, worldwide scope (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`, `AGENTS.md`, `CLAUDE.md`, `project_structure.md`) |
 | **Current phase** | Phase 0 (Foundations) → starting Phase 1 (M0 Validate) |
 | **Readiness** | See [§3](#3-progress-snapshot) |
@@ -542,6 +542,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-11-01 | `docs/drips-wave-application` | contracts | no row changes | Added dedicated DRIPS_WAVE.md application and review summary document for the Drips Wave Stellar program review panel, detailing project overview, live testnet deployments, hygiene checklist, issue tiering, and maintainer contacts. |
 | 2026-11-01 | `test/integration-suite-m1-15-m1-39` | contracts | M1-15 DONE, M1-39 DONE | Closes #28, #29: implemented full end-to-end integration test suite in `contracts/kinlock/tests/integration.rs` covering C-address callers, trustline authorization failures with zero-state movement, partial release remainder accounting, and allowlist removal with open locks; documented test layout in `docs/TESTING.md`; published contract surface reference (`docs/ERRORS.md` and `docs/EVENTS.md`). All unit, budget, integration, and proptest invariant tests pass. |
 | 2026-11-01 | `chore/bump-bindings-0.2.0` | contracts | no row changes | Bump TypeScript contract bindings package (@kinlock/contract) to 0.2.0 and re-lock package-lock.json so fresh bindings including `create_direct_lock` (ADR-0031) can be released. |
 | 2026-11-01 | `feat/universal-dual-mode-locks` | contracts | M1-35 DONE, M1-51 DONE (new row) | Implemented Dual-Mode architecture (ADR-0031): added `create_direct_lock` entry point, updated `Lock.payee_id` to `Option<BytesN<32>>`, updated `release` and `refund` for direct locks, fixed M1-35 `unlock_at < expires_at` boundary validation. All 111 unit tests, 9 budget tests, and proptest invariants pass. Re-generated and built TypeScript bindings. |
