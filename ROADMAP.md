@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Last updated** | 2026-11-01 (feat/universal-dual-mode-locks: M1-35 DONE, added M1-51 DONE; ADR-0031) |
+| **Last updated** | 2026-11-01 (chore/bump-bindings-0.2.0: bindings 0.2.0) |
 | **Docs baseline** | v0.3, worldwide scope (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`, `AGENTS.md`, `CLAUDE.md`, `project_structure.md`) |
 | **Current phase** | Phase 0 (Foundations) → starting Phase 1 (M0 Validate) |
 | **Readiness** | See [§3](#3-progress-snapshot) |
@@ -129,7 +129,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 16 | 1 | 2 | 0 | 0 | 0 | 84% |
 | 1 M0 Validate | 17 | 1 | 6 | 10 | 0 | 0 | 0 | 6% |
-| 2 Contract + registry | 46 | 31 | 5 | 10 | 0 | 0 | 0 | 67% |
+| 2 Contract + registry | 47 | 32 | 6 | 9 | 0 | 0 | 0 | 68% |
 | 3 SDK + indexer | 21 | 14 | 3 | 4 | 0 | 0 | 0 | 67% |
 | 4 App | 27 | 15 | 7 | 5 | 0 | 0 | 0 | 56% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 10 | 5 | 1 | 4 | 0 | 0 | 0 | 50% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **216** | **82** | **23** | **86** | **0** | **25** | **0** | **43%** |
+| **All** | **217** | **83** | **24** | **85** | **0** | **25** | **0** | **43%** |
 
 ---
 
@@ -542,6 +542,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-11-01 | `chore/bump-bindings-0.2.0` | contracts | no row changes | Bump TypeScript contract bindings package (@kinlock/contract) to 0.2.0 and re-lock package-lock.json so fresh bindings including `create_direct_lock` (ADR-0031) can be released. |
 | 2026-11-01 | `feat/universal-dual-mode-locks` | contracts | M1-35 DONE, M1-51 DONE (new row) | Implemented Dual-Mode architecture (ADR-0031): added `create_direct_lock` entry point, updated `Lock.payee_id` to `Option<BytesN<32>>`, updated `release` and `refund` for direct locks, fixed M1-35 `unlock_at < expires_at` boundary validation. All 111 unit tests, 9 budget tests, and proptest invariants pass. Re-generated and built TypeScript bindings. |
 | 2026-10-29 | `docs/sync-canonical-budget-assertions` | kinlock-contracts | no row changes | Regenerated this repo’s read-only doc copies with the canonical script (`.github/scripts/sync-docs.sh`, write mode) after canonical `.github`#41 landed the budget-assertion correction. Exactly three files changed, 5 lines: `docs/ARCHITECTURE.md` (the stack table row, the Soroban constraints bullet, the testing bullet), `docs/ARCHITECTURE_ESSENTIALS.md` (the stack line) and root `AGENTS.md` (the `§8.1` comment on `cargo test --test budget`). Nothing here is hand-written or hand-edited: the three files are byte-identical to what `sync-docs.sh --check` expects, verified by re-running `--check` against canonical `.github` main `180f384` after writing, which now reports this repo in sync. This regeneration is required for **every** open PR in this repo, Dependabot’s included, because unlike `roadmap-check.yml:14` (which is `if: github.actor != 'dependabot[bot]'`, so a Dependabot PR skips it and that skip satisfies branch protection) `docs-in-sync.yml` has no actor exemption at all. Substance checked against the source rather than taken from the docs: `contracts/kinlock/tests/budget.rs` is on contracts `main` (blob `f666d34`) with exactly 9 `#[test]` functions; `contracts/kinlock/Cargo.toml` declares no `soroban-budget-assert` and pulls `soroban-sdk` with `features = ["testutils"]`; contracts `.github/workflows/ci.yml:40` runs `cargo test --workspace` in the `contract` job, which is what compiles and runs `tests/budget.rs`; and main run `40701473970`’s `contract` job conclusion is `success`. **Two canonical doc PRs deliberately not merged:** `.github`#33 and #35 rewrite these same lines to say budget assertions are “not yet implemented” / “planned”, which the evidence above contradicts, so merging either would put a false statement into the synced docs; both are reported to the owner with that evidence rather than merged or closed. **Flagged, not fixed** (redefining a gate is ask-first): roadmap row `M1-16`’s description still reads “Budget tests with `soroban-budget-assert`”, naming a crate that `M1-30` established does not exist, so as written `M1-16` can never satisfy its own Done-when; it stays `IN PROGRESS` and the wording is left for the owner. No source, contract, schema, workflow or test file changed, and no row status moved. |
 | 2026-10-29 | `ci/pin-malware-scan-tools` (merge resolution) | contracts | M1-52 unchanged, still IN PROGRESS | Resolved this branch conflict against `main` without loosening anything. `main` had meanwhile changed the **same** line this PR changed: it runs `pip install "setuptools<82" semgrep==1.136.0` (the `setuptools<82` half is a CI-discovered fix — semgrep pulls in `opentelemetry-instrumentation`, which imports `pkg_resources`, and setuptools 82.0.0 removed it). This branch wanted `semgrep==1.182.1`. Kept **main’s** verified version and dropped the raise, because (a) Scorecard’s `Pinned-Dependencies` check asks for an exact pin, not the newest one, and main’s line already satisfies it; (b) raising a scanner’s version changes what the job reports, which is an ask-first CI decision, not a conflict-resolution side effect; (c) 1.182.1 may not tolerate the `setuptools<82` constraint, and guessing that here would trade a green job for an unverified one. The branch’s own half applied cleanly and is kept: `cargo install cargo-audit --locked --version 0.22.2`. Both versions were checked against the registries live before deciding, not from memory: PyPI reports semgrep latest = 1.182.1 with 1.136.0 still available, crates.io reports cargo-audit max-stable = 0.22.2. **Open question for the owner:** whether to raise `semgrep` 1.136.0 → 1.182.1 as its own PR with a CI run to confirm the `setuptools<82` interaction. M1-52 stays IN PROGRESS: its Done-when needs a post-merge Scorecard re-run. |
