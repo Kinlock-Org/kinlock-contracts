@@ -6,10 +6,10 @@
 > If code and this file disagree, stop and flag it. Don't silently pick one.
 
 ## 1. What this is
-- **Anyone, anywhere can lock USDC on Stellar/Soroban for a verified payee anywhere in the world.** Worldwide by design, launched market by market.
-- A sender locks funds to a **verified payee** (School or Rent) in a **supported country**.
-- Funds go only to the payee's **snapshotted payout address** or back to the sender.
-- Receipts prove **payment to a verified payee**. They do **not** prove service delivery.
+- **Anyone, anywhere can lock USDC on Stellar/Soroban for any recipient or verified payee worldwide.** Worldwide by design, launched market by market.
+- A sender locks funds to a **verified payee** (School or Rent) in a **supported country**, or directly to **any Stellar address** for universal payments (ADR-0031).
+- Funds go only to the payee's/recipient's **snapshotted payout address** or back to the sender.
+- Receipts prove **payment to a verified payee** (or **payment to recipient** for direct locks). They do **not** prove service delivery.
 
 ## 2. Non-negotiable principles
 - **Chain is truth.** Postgres is for lists. **Money-moving pages read chain state**, not the DB.
@@ -45,25 +45,25 @@ Flow: contracts → bindings → sdk → app. Registry is data only.
 
 ### Data
 - `Payee`: payout, category (School|Rent), status (Active|Suspended|Revoked), status_changed_at, attester, meta_hash, registered_at
-- `Lock`: sender, payee_id, **payout (snapshot)**, token, total, released, returned, ref_hash, tranches (≤12), expires_at, state (Open|Completed|Refunded|Declined)
+- `Lock`: sender, payee_id (optional), **payout (snapshot)**, token, total, released, returned, ref_hash, tranches (≤12), expires_at, state (Open|Completed|Refunded|Declined)
 - `Tranche`: amount, unlock_at, released
 - Enums are append-only. No purpose field (purpose = category)
 
 ### Entry points
 - Admin: `init`, `add/remove_attester`, `add/remove_token`, `set_paused_new_locks`, `set_caps`, `upgrade`
 - Registry: `register_payee`, `set_status`, `update_payout` (new locks only)
-- Vault: `create_lock`, `release`, `refund`, `decline`, `bump_lock` (permissionless), reads
+- Vault: `create_lock`, `create_direct_lock`, `release`, `refund`, `decline`, `bump_lock` (permissionless), reads
 
 ### Rules
-- `release`: caller is `lock.payout`; payee Active; `unlock_at ≤ now < expires_at`
-- `refund` (sender): `now ≥ expires_at`, **or** payee Revoked, **or** payee Suspended past 14-day grace
+- `release`: caller is `lock.payout`; payee Active (if payee lock); `unlock_at ≤ now < expires_at`
+- `refund` (sender): `now ≥ expires_at`, **or** (if payee lock) payee Revoked, **or** payee Suspended past 14-day grace
 - `decline` (payee): any time while Open; returns remainder to sender
-- `create_lock` rejects: unallowlisted token, inactive payee, dust, >12 tranches, `unlock_at > expires_at`, expiry beyond max duration, `sender == payout`, cap breaches
+- `create_lock` / `create_direct_lock` rejects: unallowlisted token, inactive payee (if payee lock), dust, >12 tranches, `unlock_at ≥ expires_at`, expiry beyond max duration, `sender == payout`, cap breaches
 - **No fee. No SenderApproval. No mutual cancel. No payout timelock**
 
 ### Invariants (property-test all)
 1. `released + returned ≤ total`; terminal ⇒ equality
-2. Tranches sum to `total`; `unlock_at ≤ expires_at`
+2. Tranches sum to `total`; `unlock_at < expires_at`
 3. Funds exit only to `lock.payout` or `lock.sender`
 4. Tranche released at most once
 5. Release only inside its time window by `lock.payout`
@@ -87,7 +87,7 @@ Flow: contracts → bindings → sdk → app. Registry is data only.
 - **Claim link:** `/claim/{id}#r={reference}&s={salt}`. Fragment never reaches a server. Payee client checks `sha256(reference || salt) == ref_hash`
 - **Request link:** `/send?payee=…&amount=…&ref=…&schedule=…` pre-fills the form; carries no authority
 - **Preflight:** balance, payee Active, recent payout change, duplicate reference, authorized USDC trustline
-- **Receipts:** `/r/{txHash}/{eventIndex}`; no table, no slugs. Copy says "Payment to verified payee"
+- **Receipts:** `/r/{txHash}/{eventIndex}`; no table, no slugs. Copy says "Payment to verified payee" (or "Payment to recipient" for direct locks)
 - **Verification tiers:** (1) live RPC, (2) `get_lock` state, (3) archive provider, decided before mainnet
 - **Cash-out (MVP):** guidance per supported country via payee's wallet/anchor, or hold USDC. In-app ramp only after M0
 - **Local-currency display:** indicative equivalent in payee's `local_currency` via a swappable `RateProvider`; USD only if no reliable rate. Display only, never in money logic

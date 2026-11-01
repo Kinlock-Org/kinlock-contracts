@@ -98,8 +98,8 @@ pub struct TrancheInput {
 pub struct Lock {
     pub id: u64,
     pub sender: Address,
-    pub payee_id: BytesN<32>,
-    /// SNAPSHOT of `payee.payout` at creation. Immutable (invariant 7).
+    pub payee_id: Option<BytesN<32>>,
+    /// SNAPSHOT of payee.payout (or direct recipient) at creation. Immutable (invariant 7).
     pub payout: Address,
     pub token: Address,
     pub total: i128,

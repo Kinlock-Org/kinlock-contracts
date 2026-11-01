@@ -30,11 +30,13 @@ fn keep_until(lock_expires_at: u64) -> Result<u64, Error> {
         .ok_or(Error::Overflow)
 }
 
-pub fn create_lock(
+#[allow(clippy::too_many_arguments)]
+fn create_lock_internal(
     env: &Env,
     sender: &Address,
     token: &Address,
-    payee_id: &BytesN<32>,
+    payee_id: Option<&BytesN<32>>,
+    recipient: &Address,
     tranches: &Vec<TrancheInput>,
     ref_hash: &BytesN<32>,
     expires_at: u64,
@@ -49,10 +51,18 @@ pub fn create_lock(
     if !storage::is_token_allowed(env, token) {
         return Err(Error::TokenNotAllowed);
     }
-    let payee = storage::read_payee(env, payee_id).ok_or(Error::PayeeNotFound)?;
-    if payee.status != PayeeStatus::Active {
-        return Err(Error::PayeeNotActive);
-    }
+
+    // If payee_id is provided, validate against the verified registry.
+    // If None (direct lock), recipient was passed directly.
+    let verified_payout = if let Some(pid) = payee_id {
+        let payee = storage::read_payee(env, pid).ok_or(Error::PayeeNotFound)?;
+        if payee.status != PayeeStatus::Active {
+            return Err(Error::PayeeNotActive);
+        }
+        payee.payout
+    } else {
+        recipient.clone()
+    };
 
     let count = tranches.len();
     if count == 0 || count > MAX_TRANCHES {
@@ -82,7 +92,8 @@ pub fn create_lock(
         if t.unlock_at < previous_unlock {
             return Err(Error::UnlockOutOfOrder);
         }
-        if t.unlock_at > expires_at {
+        // Bugfix M1-35: Every tranche must unlock strictly BEFORE expiry so it can be claimed.
+        if t.unlock_at >= expires_at {
             return Err(Error::UnlockAfterExpiry);
         }
         total = total.checked_add(t.amount).ok_or(Error::Overflow)?;
@@ -99,7 +110,7 @@ pub fn create_lock(
     if total > config.max_lock_amount {
         return Err(Error::AmountAboveLockCap);
     }
-    if *sender == payee.payout {
+    if *sender == verified_payout {
         return Err(Error::SenderIsPayout);
     }
     let new_total_locked = config
@@ -116,8 +127,8 @@ pub fn create_lock(
     let lock = Lock {
         id,
         sender: sender.clone(),
-        payee_id: payee_id.clone(),
-        payout: payee.payout.clone(),
+        payee_id: payee_id.cloned(),
+        payout: verified_payout.clone(),
         token: token.clone(),
         total,
         released: 0,
@@ -134,7 +145,9 @@ pub fn create_lock(
     storage::write_config(env, &config);
     let until = keep_until(expires_at)?;
     storage::extend_lock_ttl_until(env, id, until)?;
-    storage::extend_payee_ttl_until(env, payee_id, until)?;
+    if let Some(pid) = payee_id {
+        storage::extend_payee_ttl_until(env, pid, until)?;
+    }
 
     token::Client::new(env, token).transfer(
         sender,
@@ -146,7 +159,7 @@ pub fn create_lock(
         id,
         schema_version: EVENT_SCHEMA_VERSION,
         sender: sender.clone(),
-        payee_id: payee_id.clone(),
+        payee_id: payee_id.cloned(),
         payout: lock.payout,
         token: token.clone(),
         total,
@@ -158,6 +171,41 @@ pub fn create_lock(
     Ok(id)
 }
 
+pub fn create_lock(
+    env: &Env,
+    sender: &Address,
+    token: &Address,
+    payee_id: &BytesN<32>,
+    tranches: &Vec<TrancheInput>,
+    ref_hash: &BytesN<32>,
+    expires_at: u64,
+) -> Result<u64, Error> {
+    create_lock_internal(
+        env,
+        sender,
+        token,
+        Some(payee_id),
+        sender,
+        tranches,
+        ref_hash,
+        expires_at,
+    )
+}
+
+pub fn create_direct_lock(
+    env: &Env,
+    sender: &Address,
+    token: &Address,
+    recipient: &Address,
+    tranches: &Vec<TrancheInput>,
+    ref_hash: &BytesN<32>,
+    expires_at: u64,
+) -> Result<u64, Error> {
+    create_lock_internal(
+        env, sender, token, None, recipient, tranches, ref_hash, expires_at,
+    )
+}
+
 pub fn release(env: &Env, lock_id: u64, idx: u32) -> Result<(), Error> {
     storage::extend_instance_ttl(env);
     let mut lock = storage::read_lock(env, lock_id).ok_or(Error::LockNotFound)?;
@@ -165,9 +213,11 @@ pub fn release(env: &Env, lock_id: u64, idx: u32) -> Result<(), Error> {
     if lock.state != LockState::Open {
         return Err(Error::LockNotOpen);
     }
-    let payee = storage::read_payee(env, &lock.payee_id).ok_or(Error::PayeeNotFound)?;
-    if payee.status != PayeeStatus::Active {
-        return Err(Error::PayeeNotActive);
+    if let Some(payee_id) = &lock.payee_id {
+        let payee = storage::read_payee(env, payee_id).ok_or(Error::PayeeNotFound)?;
+        if payee.status != PayeeStatus::Active {
+            return Err(Error::PayeeNotActive);
+        }
     }
     let mut tranche = lock
         .tranches
@@ -254,8 +304,8 @@ pub fn refund(env: &Env, lock_id: u64) -> Result<(), Error> {
     let now = env.ledger().timestamp();
     let reason = if now >= lock.expires_at {
         RefundReason::Expired
-    } else {
-        let payee = storage::read_payee(env, &lock.payee_id).ok_or(Error::PayeeNotFound)?;
+    } else if let Some(payee_id) = &lock.payee_id {
+        let payee = storage::read_payee(env, payee_id).ok_or(Error::PayeeNotFound)?;
         let grace_ends = payee
             .status_changed_at
             .saturating_add(SUSPENSION_REFUND_GRACE_SECS);
@@ -264,6 +314,8 @@ pub fn refund(env: &Env, lock_id: u64) -> Result<(), Error> {
             PayeeStatus::Suspended if now >= grace_ends => RefundReason::SuspendedTimeout,
             _ => return Err(Error::RefundNotAllowed),
         }
+    } else {
+        return Err(Error::RefundNotAllowed);
     };
 
     let amount = close_to_sender(env, &mut lock, LockState::Refunded)?;
@@ -304,7 +356,9 @@ pub fn bump_lock(env: &Env, lock_id: u64) -> Result<(), Error> {
     }
     let until = keep_until(lock.expires_at)?;
     storage::extend_lock_ttl_until(env, lock_id, until)?;
-    storage::extend_payee_ttl_until(env, &lock.payee_id, until)?;
+    if let Some(payee_id) = &lock.payee_id {
+        storage::extend_payee_ttl_until(env, payee_id, until)?;
+    }
     Ok(())
 }
 

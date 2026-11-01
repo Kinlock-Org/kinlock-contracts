@@ -376,9 +376,13 @@ impl World {
         let Some(t) = lock.tranches.get(idx) else {
             return false;
         };
-        let payee = self.client.get_payee(&lock.payee_id);
+        let payee_active = if let Some(pid) = &lock.payee_id {
+            self.client.get_payee(pid).status == PayeeStatus::Active
+        } else {
+            true
+        };
         let now = self.now();
-        payee.status == PayeeStatus::Active
+        payee_active
             && !t.released
             && t.unlock_at <= now
             && now < lock.expires_at
@@ -389,12 +393,17 @@ impl World {
         let Some(lock) = self.open_lock(id) else {
             return false;
         };
-        let payee = self.client.get_payee(&lock.payee_id);
         let now = self.now();
-        let condition = now >= lock.expires_at
-            || payee.status == PayeeStatus::Revoked
-            || (payee.status == PayeeStatus::Suspended
-                && now >= payee.status_changed_at + SUSPENSION_REFUND_GRACE_SECS);
+        let condition = if now >= lock.expires_at {
+            true
+        } else if let Some(pid) = &lock.payee_id {
+            let payee = self.client.get_payee(pid);
+            payee.status == PayeeStatus::Revoked
+                || (payee.status == PayeeStatus::Suspended
+                    && now >= payee.status_changed_at + SUSPENSION_REFUND_GRACE_SECS)
+        } else {
+            false
+        };
         condition && !self.frozen.contains(&lock.sender)
     }
 
@@ -509,11 +518,11 @@ impl World {
                 }
                 let expires_at = last.saturating_add_signed(i64::from(*delta_secs));
                 let ok = self.do_create(*sender, *payee, v, expires_at)?;
-                // The only rule a -1 s expiry breaks is `unlock_at <= expires_at`.
-                if *delta_secs < 0 {
+                // The only rule a <=0 s expiry breaks is `unlock_at < expires_at`.
+                if *delta_secs <= 0 {
                     prop_assert!(
                         !ok,
-                        "lock with a tranche unlocking after expiry was created"
+                        "lock with a tranche unlocking at or after expiry was created"
                     );
                 }
                 ok
@@ -542,8 +551,15 @@ impl World {
                     3 => Some(PayeeStatus::Active),
                     _ => None,
                 };
-                if let Some(st) = new_status {
-                    let _ = self.client.try_set_status(&self.admin, &l.payee_id, &st);
+                if let Some(pid) = &l.payee_id {
+                    if let Some(st) = new_status {
+                        let _ = self.client.try_set_status(&self.admin, pid, &st);
+                    }
+                    if *admin == 3 {
+                        if let Some(i) = self.payee_ids.iter().position(|p| p == pid) {
+                            let _ = self.client.try_remove_attester(&self.attesters[i]);
+                        }
+                    }
                 }
                 match admin {
                     1 => {
@@ -551,11 +567,6 @@ impl World {
                     }
                     2 => {
                         let _ = self.client.try_remove_token(&l.token);
-                    }
-                    3 => {
-                        if let Some(i) = self.payee_ids.iter().position(|p| *p == l.payee_id) {
-                            let _ = self.client.try_remove_attester(&self.attesters[i]);
-                        }
                     }
                     _ => {}
                 }
@@ -572,8 +583,12 @@ impl World {
                 let (idx, unlock_at) = next
                     .map(|(i, t)| (i as u32, t.unlock_at))
                     .unwrap_or((0, l.expires_at));
-                let payee = self.client.get_payee(&l.payee_id);
-                let grace_end = payee.status_changed_at + SUSPENSION_REFUND_GRACE_SECS;
+                let grace_end = if let Some(pid) = &l.payee_id {
+                    let payee = self.client.get_payee(pid);
+                    payee.status_changed_at + SUSPENSION_REFUND_GRACE_SECS
+                } else {
+                    l.expires_at
+                };
                 let target = match point {
                     0 => unlock_at - 1,
                     1 => unlock_at,
@@ -645,8 +660,11 @@ impl World {
                 let Ok(Ok(l)) = self.client.try_get_lock(&id) else {
                     return Ok(true);
                 };
-                let payee = self.client.get_payee(&l.payee_id);
-                let grace_end = payee.status_changed_at + SUSPENSION_REFUND_GRACE_SECS;
+                let grace_end = if let Some(pid) = &l.payee_id {
+                    self.client.get_payee(pid).status_changed_at + SUSPENSION_REFUND_GRACE_SECS
+                } else {
+                    l.expires_at
+                };
                 let target = match point {
                     0 => l
                         .tranches
@@ -751,8 +769,11 @@ impl World {
             // 7
             prop_assert_eq!(Some(&lock.payout), self.created_payout.get(&lock.id));
 
-            // 5: release succeeds only when unlock_at <= now < expires_at, payee Active, and caller is lock.payout
-            let payee = self.client.get_payee(&lock.payee_id);
+            // 5: release succeeds only when unlock_at <= now < expires_at, payee Active (if institutional), and caller is lock.payout
+            let is_active = match &lock.payee_id {
+                Some(pid) => self.client.get_payee(pid).status == PayeeStatus::Active,
+                None => true,
+            };
             let now = self.now();
             if lock.state != LockState::Open {
                 for idx in 0..lock.tranches.len() {
@@ -768,7 +789,7 @@ impl World {
             } else {
                 for (idx, t) in lock.tranches.iter().enumerate() {
                     let idx = idx as u32;
-                    let release_legal = payee.status == PayeeStatus::Active
+                    let release_legal = is_active
                         && !t.released
                         && t.unlock_at <= now
                         && now < lock.expires_at
@@ -777,14 +798,14 @@ impl World {
                         let r = self.client.try_release(&lock.id, &idx);
                         prop_assert!(
                             r.is_err(),
-                            "invariant 5 violated: release({}, {}) succeeded when illegal at now={} (unlock_at={}, expires_at={}, released={}, payee_status={:?})",
+                            "invariant 5 violated: release({}, {}) succeeded when illegal at now={} (unlock_at={}, expires_at={}, released={}, is_active={})",
                             lock.id,
                             idx,
                             now,
                             t.unlock_at,
                             lock.expires_at,
                             t.released,
-                            payee.status
+                            is_active
                         );
                     }
                 }
@@ -803,11 +824,10 @@ impl World {
                 let r = self.client.try_refund(&lock.id);
                 prop_assert!(
                     r.is_err(),
-                    "invariant 6 violated: refund({}) succeeded when illegal at now={} (expires_at={}, payee_status={:?})",
+                    "invariant 6 violated: refund({}) succeeded when illegal at now={} (expires_at={})",
                     lock.id,
                     now,
-                    lock.expires_at,
-                    payee.status
+                    lock.expires_at
                 );
             }
 
@@ -816,7 +836,7 @@ impl World {
                 let _ = self.client.try_set_paused_new_locks(&true);
                 for (idx, t) in lock.tranches.iter().enumerate() {
                     let idx = idx as u32;
-                    let release_legal = payee.status == PayeeStatus::Active
+                    let release_legal = is_active
                         && !t.released
                         && t.unlock_at <= now
                         && now < lock.expires_at

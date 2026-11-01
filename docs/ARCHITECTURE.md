@@ -158,8 +158,8 @@ struct Tranche { amount: i128, unlock_at: u64, released: bool }
 struct Lock {
     id: u64,
     sender: Address,
-    payee_id: BytesN<32>,
-    payout: Address,             // SNAPSHOT of payee.payout at creation, immutable
+    payee_id: Option<BytesN<32>>, // None for direct locks
+    payout: Address,             // SNAPSHOT of payee.payout or recipient at creation, immutable
     token: Address,
     total: i128,
     released: i128,
@@ -172,7 +172,7 @@ struct Lock {
 }
 ```
 
-`payee_id` is a SHA-256 of the registry slug. Purpose is the payee's category; there is no separate purpose field.
+`payee_id` is a SHA-256 of the registry slug for verified payees, or `None` for direct locks to any Stellar address. Purpose is the payee's category; there is no separate purpose field.
 
 ### 4.3 Entry points
 
@@ -183,7 +183,7 @@ struct Lock {
 | `init(admin)` | One-time setup |
 | `add_attester` / `remove_attester` | Roster management |
 | `add_token` / `remove_token` | Allowlist; removal only blocks *new* locks |
-| `set_paused_new_locks(bool)` | Blocks `create_lock` only |
+| `set_paused_new_locks(bool)` | Blocks `create_lock` and `create_direct_lock` only |
 | `set_caps(max_lock, max_total)` | Mainnet gating (P1) |
 | `upgrade(wasm_hash)` | Multisig now; timelock before mainnet |
 
@@ -199,20 +199,21 @@ struct Lock {
 
 | Function | Auth | Behavior |
 |---|---|---|
-| `create_lock(token, payee_id, tranches, ref_hash, expires_at)` | sender | Validates (see below), snapshots payout, pulls `total` from sender, stores lock, extends TTL, emits event |
-| `release(lock_id, idx)` | `lock.payout` | Requires state Open, payee Active, `unlock_at ≤ now < expires_at`, tranche not released. Sets flags **before** transferring |
-| `refund(lock_id)` | sender | Requires Open and (`now ≥ expires_at` or payee Revoked or (payee Suspended and `now ≥ status_changed_at + GRACE`)). Returns remainder |
+| `create_lock(token, payee_id, tranches, ref_hash, expires_at)` | sender | Validates payee Active, snapshots payout, pulls `total` from sender, stores lock, extends TTL, emits event |
+| `create_direct_lock(token, recipient, tranches, ref_hash, expires_at)` | sender | Direct lock without payee (ADR-0031). Sets `payee_id = None`, `payout = recipient`, pulls `total` from sender, stores lock, extends TTL, emits event |
+| `release(lock_id, idx)` | `lock.payout` | Requires state Open, payee Active (if payee lock), `unlock_at ≤ now < expires_at`, tranche not released. Sets flags **before** transferring |
+| `refund(lock_id)` | sender | Requires Open and (`now ≥ expires_at` or (if payee lock: payee Revoked or payee Suspended and `now ≥ status_changed_at + GRACE`)). Returns remainder |
 | `decline(lock_id)` | `lock.payout` | Any time while Open. Returns remainder to sender |
 | `bump_lock(lock_id)` | none | Permissionless TTL extension for Open locks |
 | `get_lock`, `get_payee` | none | Reads |
 
-**`create_lock` validations:** contract not paused for new locks; token allowlisted; payee Active; `total ≥ MIN_AMOUNT` and ≤ `max_lock_amount`; tranche count 1..=12; tranche amounts sum to `total`; each `unlock_at ≤ expires_at` and non-decreasing; `expires_at` between `now + MIN_EXPIRY_AHEAD` and `now + MAX_LOCK_DURATION`; `sender != payout`; `total_locked + total ≤ max_total_locked`.
+**`create_lock` and `create_direct_lock` validations:** contract not paused for new locks; token allowlisted; payee Active (if verified lock); `total ≥ MIN_AMOUNT` and ≤ `max_lock_amount`; tranche count 1..=12; tranche amounts sum to `total`; each `unlock_at < expires_at` (strictly before expiry) and non-decreasing; `expires_at` between `now + MIN_EXPIRY_AHEAD` and `now + MAX_LOCK_DURATION`; `sender != payout`; `total_locked + total ≤ max_total_locked`.
 
 ### 4.4 Events
 
 All include `schema_version`. The indexer must handle multiple versions after upgrades.
 
-`PayeeRegistered`, `PayeeStatusChanged`, `PayoutUpdated`, `LockCreated {id, sender, payee_id, payout, token, total, ref_hash, expires_at, tranche_count}`, `Released {id, idx, amount, payout}`, `Refunded {id, amount, reason: Expired | Revoked | SuspendedTimeout}`, `Declined {id, amount}`.
+`PayeeRegistered`, `PayeeStatusChanged`, `PayoutUpdated`, `LockCreated {id, sender, payee_id: Option<BytesN<32>>, payout, token, total, ref_hash, expires_at, tranche_count}`, `Released {id, idx, amount, payout}`, `Refunded {id, amount, reason: Expired | Revoked | SuspendedTimeout}`, `Declined {id, amount}`.
 
 ### 4.5 State machine
 
@@ -496,6 +497,7 @@ kinlock-ramp/            # conditional, created only after M0 passes
 | 14 | Deterministic receipt URL; no receipts table | Chain is public; slugs added nothing | None meaningful |
 | 15 | Refund on payee Revoked, and after Suspended + grace | Prevents stuck funds | Attester could revoke maliciously (they are trusted) |
 | 16 | Strict boundary: release if `now < expires_at`, refund if `now ≥ expires_at` | No overlap window | Payee must act before expiry |
+| 31 | Universal dual-mode locks (direct and verified) | Allows universal payments to any Stellar recipient while preserving institutional directory protections | None; direct locks bypass payee status checks |
 
 ## 13. Hard questions review
 
