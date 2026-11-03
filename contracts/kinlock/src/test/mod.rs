@@ -9,6 +9,7 @@ mod registry_tests;
 mod release_tests;
 mod ttl_tests;
 mod upgrade_tests;
+mod vault_tests;
 
 use crate::constants::MIN_AMOUNT;
 use crate::types::{Category, Config, Lock, TrancheInput};

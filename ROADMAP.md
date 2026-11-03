@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Last updated** | 2026-11-01 (fix/scorecard-hardening: M1-52 DONE) |
+| **Last updated** | 2026-11-03 (test/issue-58-boundary-timestamp-tests: closes #58) |
 | **Docs baseline** | v0.3, worldwide scope (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`, `AGENTS.md`, `CLAUDE.md`, `project_structure.md`) |
 | **Current phase** | Phase 0 (Foundations) → starting Phase 1 (M0 Validate) |
 | **Readiness** | See [§3](#3-progress-snapshot) |
@@ -542,6 +542,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-11-03 | `test/issue-58-boundary-timestamp-tests` | contracts | no row changes (M1-07, M1-13 verified) | Closes #58: Added dedicated unit tests in `contracts/kinlock/src/test/vault_tests.rs` asserting exact second boundary transitions for `now == unlock_at - 1`, `now == unlock_at`, `now == expires_at - 1`, and `now == expires_at`. Verified that `release` succeeds exactly when `unlock_at <= now < expires_at`, while `refund` succeeds exactly when `now >= expires_at` without any off-by-one second discrepancy across single-tranche, multi-tranche, and direct locks. All 115 unit tests pass. |
 | 2026-11-01 | `fix/scorecard-hardening` | contracts | M1-52 DONE | OpenSSF Scorecard hardening: enriched SECURITY.md with explicit vulnerability reporting instructions and response/disclosure timelines (acknowledgement <48h, triage <5d, coordinated disclosure). All 111 unit tests, 9 budget tests, 5 integration tests, and proptest invariants pass. |
 | 2026-11-01 | `docs/drips-wave-application` | contracts | no row changes | Added dedicated DRIPS_WAVE.md application and review summary document for the Drips Wave Stellar program review panel, detailing project overview, live testnet deployments, hygiene checklist, issue tiering, and maintainer contacts. |
 | 2026-11-01 | `test/integration-suite-m1-15-m1-39` | contracts | M1-15 DONE, M1-39 DONE | Closes #28, #29: implemented full end-to-end integration test suite in `contracts/kinlock/tests/integration.rs` covering C-address callers, trustline authorization failures with zero-state movement, partial release remainder accounting, and allowlist removal with open locks; documented test layout in `docs/TESTING.md`; published contract surface reference (`docs/ERRORS.md` and `docs/EVENTS.md`). All unit, budget, integration, and proptest invariant tests pass. |
