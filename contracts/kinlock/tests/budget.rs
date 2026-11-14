@@ -305,3 +305,106 @@ fn budget_get_lock() {
 
     assert_budget(&env, "get_lock", 200_000, 150_000);
 }
+
+fn max_tranche_spec() -> [(i128, u64); 12] {
+    [
+        (MIN_AMOUNT, T0 + DAY),
+        (MIN_AMOUNT, T0 + 2 * DAY),
+        (MIN_AMOUNT, T0 + 3 * DAY),
+        (MIN_AMOUNT, T0 + 4 * DAY),
+        (MIN_AMOUNT, T0 + 5 * DAY),
+        (MIN_AMOUNT, T0 + 6 * DAY),
+        (MIN_AMOUNT, T0 + 7 * DAY),
+        (MIN_AMOUNT, T0 + 8 * DAY),
+        (MIN_AMOUNT, T0 + 9 * DAY),
+        (MIN_AMOUNT, T0 + 10 * DAY),
+        (MIN_AMOUNT, T0 + 11 * DAY),
+        (MIN_AMOUNT, T0 + 12 * DAY),
+    ]
+}
+
+#[test]
+fn budget_release_max_tranches() {
+    let Fixture { env, client } = setup();
+    let attester = Address::generate(&env);
+    client.add_attester(&attester);
+    let payee_id = BytesN::from_array(&env, &[10; 32]);
+    let payout = Address::generate(&env);
+    let meta_hash = BytesN::from_array(&env, &[110; 32]);
+    client.register_payee(&attester, &payee_id, &payout, &Category::School, &meta_hash);
+    let token = new_token(&env, &client);
+    let sender = Address::generate(&env);
+    StellarAssetClient::new(&env, &token).mint(&sender, &(12 * MIN_AMOUNT));
+    let ref_hash = BytesN::from_array(&env, &[0xAB; 32]);
+    let spec = max_tranche_spec();
+    let lock_id = client.create_lock(
+        &sender,
+        &token,
+        &payee_id,
+        &tranches(&env, &spec),
+        &ref_hash,
+        &(T0 + 20 * DAY),
+    );
+    env.ledger().set_timestamp(T0 + 12 * DAY);
+
+    client.release(&lock_id, &11);
+
+    assert_budget(&env, "release_max_tranches", 1_200_000, 500_000);
+}
+
+#[test]
+fn budget_refund_max_tranches() {
+    let Fixture { env, client } = setup();
+    let attester = Address::generate(&env);
+    client.add_attester(&attester);
+    let payee_id = BytesN::from_array(&env, &[11; 32]);
+    let payout = Address::generate(&env);
+    let meta_hash = BytesN::from_array(&env, &[111; 32]);
+    client.register_payee(&attester, &payee_id, &payout, &Category::School, &meta_hash);
+    let token = new_token(&env, &client);
+    let sender = Address::generate(&env);
+    StellarAssetClient::new(&env, &token).mint(&sender, &(12 * MIN_AMOUNT));
+    let ref_hash = BytesN::from_array(&env, &[0xAB; 32]);
+    let spec = max_tranche_spec();
+    let lock_id = client.create_lock(
+        &sender,
+        &token,
+        &payee_id,
+        &tranches(&env, &spec),
+        &ref_hash,
+        &(T0 + 20 * DAY),
+    );
+    env.ledger().set_timestamp(T0 + 21 * DAY);
+
+    client.refund(&lock_id);
+
+    assert_budget(&env, "refund_max_tranches", 1_100_000, 450_000);
+}
+
+#[test]
+fn budget_decline_max_tranches() {
+    let Fixture { env, client } = setup();
+    let attester = Address::generate(&env);
+    client.add_attester(&attester);
+    let payee_id = BytesN::from_array(&env, &[12; 32]);
+    let payout = Address::generate(&env);
+    let meta_hash = BytesN::from_array(&env, &[112; 32]);
+    client.register_payee(&attester, &payee_id, &payout, &Category::School, &meta_hash);
+    let token = new_token(&env, &client);
+    let sender = Address::generate(&env);
+    StellarAssetClient::new(&env, &token).mint(&sender, &(12 * MIN_AMOUNT));
+    let ref_hash = BytesN::from_array(&env, &[0xAB; 32]);
+    let spec = max_tranche_spec();
+    let lock_id = client.create_lock(
+        &sender,
+        &token,
+        &payee_id,
+        &tranches(&env, &spec),
+        &ref_hash,
+        &(T0 + 20 * DAY),
+    );
+
+    client.decline(&lock_id);
+
+    assert_budget(&env, "decline_max_tranches", 1_100_000, 450_000);
+}
