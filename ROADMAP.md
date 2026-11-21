@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Last updated** | 2026-11-01 (fix/scorecard-hardening: M1-52 DONE) |
+| **Last updated** | 2026-11-21 (`chore/suppress-crypto-bigint-advisory`: M1-46 row added — the suppression it describes has been on `main` since `b4f1fd0`, but the row was never instantiated) |
 | **Docs baseline** | v0.3, worldwide scope (`PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE_ESSENTIALS.md`, `AGENTS.md`, `CLAUDE.md`, `project_structure.md`) |
 | **Current phase** | Phase 0 (Foundations) → starting Phase 1 (M0 Validate) |
 | **Readiness** | See [§3](#3-progress-snapshot) |
@@ -129,7 +129,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 |---|---|---|---|---|---|---|---|---|
 | 0 Foundations | 19 | 16 | 1 | 2 | 0 | 0 | 0 | 84% |
 | 1 M0 Validate | 17 | 1 | 6 | 10 | 0 | 0 | 0 | 6% |
-| 2 Contract + registry | 47 | 35 | 5 | 7 | 0 | 0 | 0 | 74% |
+| 2 Contract + registry | 48 | 36 | 5 | 7 | 0 | 0 | 0 | 75% |
 | 3 SDK + indexer | 21 | 14 | 3 | 4 | 0 | 0 | 0 | 67% |
 | 4 App | 27 | 15 | 7 | 5 | 0 | 0 | 0 | 56% |
 | 5 Testnet pilot | 7 | 0 | 0 | 7 | 0 | 0 | 0 | 0% |
@@ -139,7 +139,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | 9 Conditional ramp | 9 | 0 | 0 | 0 | 0 | 9 | 0 | n/a |
 | 10 Wave + community | 10 | 5 | 1 | 4 | 0 | 0 | 0 | 50% |
 | 11 Deferred parking lot | 16 | 0 | 0 | 0 | 0 | 16 | 0 | n/a |
-| **All** | **217** | **86** | **23** | **83** | **0** | **25** | **0** | **45%** |
+| **All** | **218** | **87** | **23** | **83** | **0** | **25** | **0** | **45%** |
 
 ---
 
@@ -247,6 +247,7 @@ Readiness % = `DONE ÷ (all rows − DEFERRED − DROPPED)`. Conditional rows (P
 | M1-41 | `validate` reports every rule failure in one run instead of stopping at the first | registry | P2 | TODO | M1-40 | A record with three violations lists all three with file, rule id and fix hint; deterministic output; existing cases unedited |
 | M1-42 | CI `malware-scan` job: `cargo audit` against the RustSec advisory database plus a Semgrep source scan on every PR | contracts | P1 | DONE | — | Job runs on every PR; a known-vulnerable crate or an injected malicious-pattern test case trips it; verified green on a real PR |
 | M1-45 | Add OpenSSF Scorecard CI (`ossf/scorecard-action`): weekly supply-chain security posture scan published to the public Scorecard API/badge | contracts | P2 | DONE | — | `.github/workflows/scorecard.yml` runs on push to `main` and weekly; results visible on the Security tab and via `https://api.scorecard.dev/projects/github.com/Kinlock-Org/kinlock-contracts/badge`; verified on a real run — merged 2026-10-26, confirmed live at `api.scorecard.dev` (score 4.2, informing `M1-47`) |
+| M1-46 | Stopgap: `.cargo/audit.toml` suppresses `RUSTSEC-2026-0387` (`crypto-bigint` 0.5.5 timing-variability advisory, transitive via `soroban-sdk`'s ECDSA stack) so `M1-42`'s `dependency-audit` job stops blocking every PR. Not a fix — the vulnerable version is unavoidable under the current `soroban-sdk@28.0.0` pin | contracts | P1 | DONE | M1-42, DEC-24 | `cargo audit` exits 0 (verified locally); suppression is scoped to this one advisory ID only, dated and justified in the config file; tracked here for removal once a stable `soroban-sdk` release moves off the vulnerable `elliptic-curve`/`crypto-bigint` chain |
 | M1-47 | Scorecard remediation, Tier 1: pin every `uses:` in every workflow file to a commit SHA (`Pinned-Dependencies` was 1/10); scope `bindings.yml`'s `contents: write` to the job, not the workflow (`Token-Permissions` was 0/10); add `.github/dependabot.yml` for `cargo` + `github-actions` (`Dependency-Update-Tool` was 0/10); enable CodeQL (`SAST` was 0/10) — default setup for `actions`+`javascript-typescript` (enabled via the Code Scanning API; `rust` isn't accepted by that API yet despite being GA), plus a dedicated advanced-setup `codeql-rust.yml` for Rust | contracts | P2 | DONE | M1-45 | Next scheduled Scorecard run shows `Pinned-Dependencies` and `Token-Permissions` at 10/10, `Dependency-Update-Tool` at a non-zero score, and `SAST` at a non-zero score; verified against a real re-run, not assumed — merged; Dependabot confirmed working (opened real dependency-update PRs); CodeQL confirmed working (`Analyze` jobs passing in CI) |
 | M1-50 | `roadmap-check.yml` exempts Dependabot (`if: github.actor != 'dependabot[bot]'`): Dependabot has no way to know AGENTS.md §12's ROADMAP.md convention and can't be configured to edit it, so every one of the ~45 PRs it opened after `M1-47` was failing this required check for a reason that has nothing to do with the dependency bump itself | contracts | P1 | DONE | M1-47 | `roadmap-check` reports success (skipped) on a real Dependabot PR; confirmed via GitHub's own status-checks docs that a job skipped by a job-level `if` reports "Success" and does not block a required check, not assumed |
 | M1-51 | Universal payments direct lock entry point: add `create_direct_lock`, `Option<BytesN<32>>` `payee_id` in `Lock`, allow `release` to bypass payee check for direct locks, and export bindings | contracts | P0 | DONE | — | ADR-0031; entry point, storage, events, and lifecycle verified; 111 unit tests, 9 budget tests, 1 proptest invariant test pass; TS bindings built |
@@ -542,6 +543,7 @@ Newest first. One entry per PR. Required for every contribution (see §2).
 
 | Date | PR / ref | Repo | Rows touched | Summary |
 |---|---|---|---|---|
+| 2026-11-21 | `chore/suppress-crypto-bigint-advisory` (#40, conflict resolution) | contracts | M1-46 row instantiated | Rebased this PR onto `main` after `b4f1fd0` and `ci/scorecard-pinned-deps-dec24` landed underneath it. **The suppression itself is no longer this PR's contribution** — `main` already carries `.cargo/audit.toml` with the `RUSTSEC-2026-0387` ignore (added on the `ci/scorecard` branch, whose Changelog says the branch "predates `M1-46`'s `.cargo/audit.toml` fix (PR #40)" and applies the same suppression rather than waiting), so the conflict resolution keeps `main`'s file byte for byte, including its `DEC-24` back-reference. What is left — and what `main`'s own Changelog flags as an unfixed gap ("`M1-46` is referenced by name in two places … but was never instantiated as its own row in any phase table") — is the dangling row. This PR adds it to the Phase 2 table as `DONE`, depending on `M1-42` plus `DEC-24` (which `main` did create, expanded to cover `GHSA-qwgh-2vcv-g2f7` as well). Verified by running, not by reading: `cargo audit` exits 0 with the config in place, and the same run with `RUSTSEC-2026-0387` removed from `ignore` exits 1 on that advisory — that is the "stops blocking every PR" criterion; `cargo fmt --all -- --check` clean. §3 recomputed by hand (Phase 2: 47→48 rows, 35→36 `DONE`, 74%→75%; All: 217→218 rows, 86→87 `DONE`; `87 ÷ (218 − 25 deferred) = 45.1%`, so the headline stays 45%) because `scripts/roadmap-progress` still does not exist in this repo — §12.4 requires stating that. No other repo's or PR's `ROADMAP.md` content was overwritten: `main`'s file is the base and the only additions are this row, the `M1-46` row, and the counts it moves. |
 | 2026-11-01 | `fix/scorecard-hardening` | contracts | M1-52 DONE | OpenSSF Scorecard hardening: enriched SECURITY.md with explicit vulnerability reporting instructions and response/disclosure timelines (acknowledgement <48h, triage <5d, coordinated disclosure). All 111 unit tests, 9 budget tests, 5 integration tests, and proptest invariants pass. |
 | 2026-11-01 | `docs/drips-wave-application` | contracts | no row changes | Added dedicated DRIPS_WAVE.md application and review summary document for the Drips Wave Stellar program review panel, detailing project overview, live testnet deployments, hygiene checklist, issue tiering, and maintainer contacts. |
 | 2026-11-01 | `test/integration-suite-m1-15-m1-39` | contracts | M1-15 DONE, M1-39 DONE | Closes #28, #29: implemented full end-to-end integration test suite in `contracts/kinlock/tests/integration.rs` covering C-address callers, trustline authorization failures with zero-state movement, partial release remainder accounting, and allowlist removal with open locks; documented test layout in `docs/TESTING.md`; published contract surface reference (`docs/ERRORS.md` and `docs/EVENTS.md`). All unit, budget, integration, and proptest invariant tests pass. |
