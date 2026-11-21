@@ -3,7 +3,7 @@ resolver = "2"
 members = ["contracts/kinlock"]
 
 [workspace.dependencies]
-soroban-sdk = "28.0.0"
+soroban-sdk = "29.0.1"
 proptest = "1.11.0"
 
 [profile.release]

@@ -85,7 +85,7 @@ Dependency direction: `kinlock-contracts` → generated TS bindings → `kinlock
 |---|---|---|
 | Contract | Rust, `soroban-sdk`, Stellar CLI | One contract, modular code (`registry`, `vault` modules) |
 | Contract testing | `cargo test`, `proptest` | Property tests required for fund invariants |
-| Cost assertions | `soroban-budget-assert` in CI | Plus periodic testnet simulation to compare estimates |
+| Cost assertions | Budget-ceiling tests in CI: `contracts/kinlock/tests/budget.rs`, run by the `contract` job's `cargo test --workspace` | Comparing local estimates against testnet simulation is still open (`M1-16`) |
 | Token | USDC via SAC (SEP-41), allowlisted | 7 decimals; amounts `i128` |
 | Client libs | `@stellar/stellar-sdk`; generated bindings via `stellar contract bindings typescript` | Published from `kinlock-contracts` |
 | Frontend | Next.js (App Router), TypeScript, Tailwind | Mobile-first. **i18n-ready:** all UI strings externalized from the start; `Intl` APIs for numbers, currencies, dates. Full translations deferred |
@@ -158,8 +158,8 @@ struct Tranche { amount: i128, unlock_at: u64, released: bool }
 struct Lock {
     id: u64,
     sender: Address,
-    payee_id: BytesN<32>,
-    payout: Address,             // SNAPSHOT of payee.payout at creation, immutable
+    payee_id: Option<BytesN<32>>, // None for direct locks
+    payout: Address,             // SNAPSHOT of payee.payout or recipient at creation, immutable
     token: Address,
     total: i128,
     released: i128,
@@ -172,7 +172,7 @@ struct Lock {
 }
 ```
 
-`payee_id` is a SHA-256 of the registry slug. Purpose is the payee's category; there is no separate purpose field.
+`payee_id` is a SHA-256 of the registry slug for verified payees, or `None` for direct locks to any Stellar address. Purpose is the payee's category; there is no separate purpose field.
 
 ### 4.3 Entry points
 
@@ -183,7 +183,7 @@ struct Lock {
 | `init(admin)` | One-time setup |
 | `add_attester` / `remove_attester` | Roster management |
 | `add_token` / `remove_token` | Allowlist; removal only blocks *new* locks |
-| `set_paused_new_locks(bool)` | Blocks `create_lock` only |
+| `set_paused_new_locks(bool)` | Blocks `create_lock` and `create_direct_lock` only |
 | `set_caps(max_lock, max_total)` | Mainnet gating (P1) |
 | `upgrade(wasm_hash)` | Multisig now; timelock before mainnet |
 
@@ -199,20 +199,21 @@ struct Lock {
 
 | Function | Auth | Behavior |
 |---|---|---|
-| `create_lock(token, payee_id, tranches, ref_hash, expires_at)` | sender | Validates (see below), snapshots payout, pulls `total` from sender, stores lock, extends TTL, emits event |
-| `release(lock_id, idx)` | `lock.payout` | Requires state Open, payee Active, `unlock_at ≤ now < expires_at`, tranche not released. Sets flags **before** transferring |
-| `refund(lock_id)` | sender | Requires Open and (`now ≥ expires_at` or payee Revoked or (payee Suspended and `now ≥ status_changed_at + GRACE`)). Returns remainder |
+| `create_lock(token, payee_id, tranches, ref_hash, expires_at)` | sender | Validates payee Active, snapshots payout, pulls `total` from sender, stores lock, extends TTL, emits event |
+| `create_direct_lock(token, recipient, tranches, ref_hash, expires_at)` | sender | Direct lock without payee (ADR-0031). Sets `payee_id = None`, `payout = recipient`, pulls `total` from sender, stores lock, extends TTL, emits event |
+| `release(lock_id, idx)` | `lock.payout` | Requires state Open, payee Active (if payee lock), `unlock_at ≤ now < expires_at`, tranche not released. Sets flags **before** transferring |
+| `refund(lock_id)` | sender | Requires Open and (`now ≥ expires_at` or (if payee lock: payee Revoked or payee Suspended and `now ≥ status_changed_at + GRACE`)). Returns remainder |
 | `decline(lock_id)` | `lock.payout` | Any time while Open. Returns remainder to sender |
 | `bump_lock(lock_id)` | none | Permissionless TTL extension for Open locks |
 | `get_lock`, `get_payee` | none | Reads |
 
-**`create_lock` validations:** contract not paused for new locks; token allowlisted; payee Active; `total ≥ MIN_AMOUNT` and ≤ `max_lock_amount`; tranche count 1..=12; tranche amounts sum to `total`; each `unlock_at ≤ expires_at` and non-decreasing; `expires_at` between `now + MIN_EXPIRY_AHEAD` and `now + MAX_LOCK_DURATION`; `sender != payout`; `total_locked + total ≤ max_total_locked`.
+**`create_lock` and `create_direct_lock` validations:** contract not paused for new locks; token allowlisted; payee Active (if verified lock); `total ≥ MIN_AMOUNT` and ≤ `max_lock_amount`; tranche count 1..=12; tranche amounts sum to `total`; each `unlock_at < expires_at` (strictly before expiry) and non-decreasing; `expires_at` between `now + MIN_EXPIRY_AHEAD` and `now + MAX_LOCK_DURATION`; `sender != payout`; `total_locked + total ≤ max_total_locked`.
 
 ### 4.4 Events
 
 All include `schema_version`. The indexer must handle multiple versions after upgrades.
 
-`PayeeRegistered`, `PayeeStatusChanged`, `PayoutUpdated`, `LockCreated {id, sender, payee_id, payout, token, total, ref_hash, expires_at, tranche_count}`, `Released {id, idx, amount, payout}`, `Refunded {id, amount, reason: Expired | Revoked | SuspendedTimeout}`, `Declined {id, amount}`.
+`PayeeRegistered`, `PayeeStatusChanged`, `PayoutUpdated`, `LockCreated {id, sender, payee_id: Option<BytesN<32>>, payout, token, total, ref_hash, expires_at, tranche_count}`, `Released {id, idx, amount, payout}`, `Refunded {id, amount, reason: Expired | Revoked | SuspendedTimeout}`, `Declined {id, amount}`.
 
 ### 4.5 State machine
 
@@ -252,7 +253,7 @@ Partial releases keep the lock Open. Refund or decline after partial release ret
 - Extend persistent TTL on create to `expires_at + TTL_GRACE`; extend completed locks for a receipt-retention period if the network allows; keep `bump_lock` permissionless.
 - Time uses ledger timestamp; treat it as approximate to the ledger close interval.
 - Contract storage is versioned. Upgrades require a migration test against a snapshot of testnet state.
-- Budgets per entry point enforced with `soroban-budget-assert`.
+- Budgets per entry point enforced in CI by `contracts/kinlock/tests/budget.rs`, using the SDK's own `Env::cost_estimate()` (`testutils` feature). No `soroban-budget-assert`: that crate is not published on crates.io and no repo or docs page carries that name (`M1-30` resolved it this way, so no new dependency was added).
 
 ## 5. Off-chain design
 
@@ -436,7 +437,7 @@ Mainnet gating: external audit → legal review → capped beta (per-lock and gl
 
 - **Unit tests** for every entry point: success and each failure path (including each `create_lock` validation).
 - **Property tests (`proptest`)**: random sequences of create, release, refund, decline, status changes, and time advances against the §4.6 invariants.
-- **Budget assertions** with `soroban-budget-assert`; compare local estimates against testnet simulation.
+- **Budget assertions** in `contracts/kinlock/tests/budget.rs`: CPU and memory ceilings per entry point, set at roughly 2x the measured baseline so a cost regression trips the test before it trips Mainnet's hard resource limits. Comparing local estimates against testnet simulation remains open (`M1-16`).
 - **Integration tests** on the local quickstart network through the SDK, including C-address sender and payee, missing trustline, and boundary timestamps (`now == expires_at`).
 - **Indexer tests:** replay recorded event fixtures; idempotency; cursor recovery; mixed `schema_version`.
 - **Upgrade test:** migrate a snapshot of testnet state to a new WASM and re-run invariants.
@@ -496,6 +497,7 @@ kinlock-ramp/            # conditional, created only after M0 passes
 | 14 | Deterministic receipt URL; no receipts table | Chain is public; slugs added nothing | None meaningful |
 | 15 | Refund on payee Revoked, and after Suspended + grace | Prevents stuck funds | Attester could revoke maliciously (they are trusted) |
 | 16 | Strict boundary: release if `now < expires_at`, refund if `now ≥ expires_at` | No overlap window | Payee must act before expiry |
+| 31 | Universal dual-mode locks (direct and verified) | Allows universal payments to any Stellar recipient while preserving institutional directory protections | None; direct locks bypass payee status checks |
 
 ## 13. Hard questions review
 

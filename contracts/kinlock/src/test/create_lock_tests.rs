@@ -74,7 +74,7 @@ fn create_lock_stores_lock_and_pulls_funds() {
     assert_eq!(id, 1);
     let lock = c.s.lock(id);
     assert_eq!(lock.sender, c.sender);
-    assert_eq!(lock.payee_id, c.payee_id);
+    assert_eq!(lock.payee_id, Some(c.payee_id));
     assert_eq!(lock.payout, c.payout);
     assert_eq!(lock.token, c.token);
     assert_eq!(lock.total, 3 * MIN_AMOUNT);
@@ -113,7 +113,7 @@ fn create_lock_emits_event() {
         id,
         schema_version: EVENT_SCHEMA_VERSION,
         sender: c.sender.clone(),
-        payee_id: c.payee_id.clone(),
+        payee_id: Some(c.payee_id.clone()),
         payout: c.payout.clone(),
         token: c.token.clone(),
         total: 2 * MIN_AMOUNT,
@@ -143,9 +143,9 @@ fn accepts_boundary_values() {
     assert!(c
         .try_create(&c.one(MIN_AMOUNT), T0 + MAX_LOCK_DURATION_SECS)
         .is_ok());
-    // unlock_at == expires_at, equal unlock times, MAX_TRANCHES tranches, total == MIN_AMOUNT.
+    // unlock_at == expires_at - 1, equal unlock times, MAX_TRANCHES tranches, total == MIN_AMOUNT.
     let tranches =
-        c.s.tranches(&[(MIN_AMOUNT / 2, EXPIRES), (MIN_AMOUNT / 2, EXPIRES)]);
+        c.s.tranches(&[(MIN_AMOUNT / 2, EXPIRES - 1), (MIN_AMOUNT / 2, EXPIRES - 1)]);
     assert!(c.try_create(&tranches, EXPIRES).is_ok());
     let spec: std::vec::Vec<(i128, u64)> = (0..MAX_TRANCHES)
         .map(|i| (MIN_AMOUNT, T0 + u64::from(i)))
@@ -242,6 +242,16 @@ fn rejects_unlock_out_of_order() {
 fn rejects_unlock_after_expiry() {
     let c = ctx();
     let tranches = c.s.tranches(&[(MIN_AMOUNT, EXPIRES + 1)]);
+    assert_eq!(
+        c.try_create(&tranches, EXPIRES),
+        Err(Error::UnlockAfterExpiry)
+    );
+}
+
+#[test]
+fn rejects_unlock_at_expiry() {
+    let c = ctx();
+    let tranches = c.s.tranches(&[(MIN_AMOUNT, EXPIRES)]);
     assert_eq!(
         c.try_create(&tranches, EXPIRES),
         Err(Error::UnlockAfterExpiry)
@@ -391,4 +401,102 @@ fn max_duration_fits_the_network_ttl() {
         .try_create(&c.one(MIN_AMOUNT), T0 + MAX_LOCK_DURATION_SECS)
         .is_ok());
     assert!(needed(150 * DAY + TTL_GRACE_SECS) > max_ttl);
+}
+
+#[test]
+fn create_direct_lock_succeeds_and_lifecycle_works() {
+    let c = ctx();
+    let recipient = Address::generate(&c.s.env);
+    let tranches = c.s.tranches(&[(MIN_AMOUNT, T0 + DAY)]);
+
+    let id = c.s.client.create_direct_lock(
+        &c.sender,
+        &c.token,
+        &recipient,
+        &tranches,
+        &c.s.ref_hash(),
+        &EXPIRES,
+    );
+
+    assert_eq!(id, 1);
+
+    // Event emitted with None payee_id (check before any further contract call)
+    let expected = LockCreated {
+        id,
+        schema_version: EVENT_SCHEMA_VERSION,
+        sender: c.sender.clone(),
+        payee_id: None,
+        payout: recipient.clone(),
+        token: c.token.clone(),
+        total: MIN_AMOUNT,
+        ref_hash: c.s.ref_hash(),
+        expires_at: EXPIRES,
+        tranche_count: 1,
+    };
+    assert_eq!(
+        c.s.env
+            .events()
+            .all()
+            .filter_by_contract(&c.s.client.address),
+        [expected.to_xdr(&c.s.env, &c.s.client.address)]
+    );
+
+    let lock = c.s.lock(id);
+    assert_eq!(lock.sender, c.sender);
+    assert_eq!(lock.payee_id, None);
+    assert_eq!(lock.payout, recipient);
+    assert_eq!(lock.total, MIN_AMOUNT);
+    assert_eq!(lock.state, LockState::Open);
+
+    // Release works directly by recipient without registry entry
+    c.s.set_time(T0 + DAY);
+    c.s.client.release(&id, &0);
+    assert_eq!(c.s.balance(&c.token, &recipient), MIN_AMOUNT);
+    assert_eq!(c.s.lock(id).state, LockState::Completed);
+}
+
+#[test]
+fn direct_lock_refund_rules() {
+    let c = ctx();
+    let recipient = Address::generate(&c.s.env);
+    let tranches = c.s.tranches(&[(MIN_AMOUNT, T0 + DAY)]);
+
+    let id = c.s.client.create_direct_lock(
+        &c.sender,
+        &c.token,
+        &recipient,
+        &tranches,
+        &c.s.ref_hash(),
+        &EXPIRES,
+    );
+
+    // Before expiry, sender cannot refund (no registry payee to be revoked/suspended)
+    assert_eq!(c.s.client.try_refund(&id), Err(Ok(Error::RefundNotAllowed)));
+
+    // At expiry, refund succeeds
+    c.s.set_time(EXPIRES);
+    assert!(c.s.client.try_refund(&id).is_ok());
+    assert_eq!(c.s.lock(id).state, LockState::Refunded);
+    assert_eq!(c.s.balance(&c.token, &c.sender), 1_000 * MIN_AMOUNT);
+}
+
+#[test]
+fn direct_lock_decline_returns_to_sender() {
+    let c = ctx();
+    let recipient = Address::generate(&c.s.env);
+    let tranches = c.s.tranches(&[(MIN_AMOUNT, T0 + DAY)]);
+
+    let id = c.s.client.create_direct_lock(
+        &c.sender,
+        &c.token,
+        &recipient,
+        &tranches,
+        &c.s.ref_hash(),
+        &EXPIRES,
+    );
+
+    // Recipient declines
+    c.s.client.decline(&id);
+    assert_eq!(c.s.lock(id).state, LockState::Declined);
+    assert_eq!(c.s.balance(&c.token, &c.sender), 1_000 * MIN_AMOUNT);
 }

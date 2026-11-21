@@ -29,3 +29,8 @@ jq --arg version "$VERSION" '
   | .dependencies["@stellar/stellar-sdk"] = "17.2.1"
 ' "$OUT/package.json" > "$tmp"
 mv "$tmp" "$OUT/package.json"
+
+# `--overwrite` above wipes package-lock.json along with everything else it doesn't manage.
+# Regenerate it here so it's part of what counts as "a fresh generation" and CI's committed-
+# bindings check (and `npm ci` in bindings.yml) have something real to compare/install against.
+(cd "$OUT" && npm install --package-lock-only)

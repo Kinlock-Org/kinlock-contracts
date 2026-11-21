@@ -164,7 +164,7 @@ cargo fmt --all -- --check
 cargo clippy --all-targets -- -D warnings
 cargo test --workspace
 stellar contract build
-cargo test --test budget          # soroban-budget-assert cost tests
+cargo test --test budget          # budget-ceiling tests (SDK Env::cost_estimate API; no soroban-budget-assert crate exists)
 ```
 Bindings: generate with `stellar contract bindings typescript` into the committed bindings output. Never hand-edit.
 Read `rust-toolchain.toml` for the pinned toolchain.

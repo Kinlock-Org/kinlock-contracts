@@ -18,5 +18,6 @@ ignore = [
   # pre-release (30.0.0-rc.1), not something to put under a financial
   # contract without real testing. Stopgap only -- revisit when a stable
   # soroban-sdk release lands, or sooner if a lower-risk path appears.
+  # Tracked in ROADMAP.md as DEC-24 (see kinlock-contracts#40).
   "RUSTSEC-2026-0387",
 ]

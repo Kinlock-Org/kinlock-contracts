@@ -43,7 +43,7 @@ pub struct LockCreated {
     pub id: u64,
     pub schema_version: u32,
     pub sender: Address,
-    pub payee_id: BytesN<32>,
+    pub payee_id: Option<BytesN<32>>,
     pub payout: Address,
     pub token: Address,
     pub total: i128,

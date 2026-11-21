@@ -35,18 +35,20 @@
 
 ## 1. Summary
 
-**Kinlock lets anyone, anywhere lock USDC on Stellar (Soroban) for a verified payee anywhere in the world.**
+**Kinlock lets anyone, anywhere lock USDC on Stellar (Soroban) for any recipient or verified payee worldwide.**
 
-In more detail: a sender locks USDC to a **verified payee** (a school or landlord) for a declared purpose. The funds can only be released to that payee, or returned to the sender if unclaimed or if the payee is revoked. Each release yields a **receipt anyone can verify on-chain**.
+Kinlock provides a **Dual-Mode Architecture** (ADR-0031):
+1. **Verified Payee Locks:** A sender locks USDC to a vetted institution (School or Rent) registered in the on-chain registry via trusted attesters. Funds can only go to that payee's snapshot payout address or back to the sender if unclaimed or revoked. Receipts state **"Payment to verified payee"**.
+2. **Direct Locks (Universal Payments):** A sender locks USDC directly to any Stellar account (`G...` classic address or `C...` contract address) for any payment whatsoever. Direct locks benefit from the same non-custodial milestone tranche schedule, privacy-preserving reference hashes, and on-chain verification, without requiring institutional verification. Receipts state **"Payment to recipient"**.
 
-Kinlock is non-custodial: a Soroban contract holds locked balances and no Kinlock server holds keys or funds.
+Kinlock is strictly non-custodial: a Soroban contract holds locked balances and no Kinlock server holds keys or funds.
 
 **Worldwide by design, launched market by market.** The product has no built-in geography. What differs per country is *registry data and operations*: which attesters can verify payees there, which payout and cash-out routes exist, which local currency to show, and what the law allows. A country becomes a **supported country** only after legal review, at least one willing attester, and a practical cash-out route (or payees able to hold USDC). Until then it is not listed. "Worldwide" therefore means *no technical or product barrier to any country*, not *live everywhere on day one*.
 
-**What Kinlock proves:** a specific amount of USDC reached a payee that a named attester verified, at a specific time, for a specific reference.
+**What Kinlock proves:** for verified locks, a specific amount of USDC reached a payee that a named attester verified, at a specific time, for a specific reference; for direct locks, that funds reached the recipient address on schedule under the hash commitment.
 **What Kinlock does not prove:** that the school credited the student, or that the landlord applied the rent. Optional payee acknowledgment narrows this gap (LCK-10) but cannot close it.
 
-**MVP in one sentence:** a sender locks USDC to a registered payee, the payee releases it in tranches, and anyone can verify the payment on-chain.
+**MVP in one sentence:** a sender locks USDC for a verified payee or direct Stellar address, the recipient releases it in tranches, and anyone can verify the payment on-chain.
 
 ## 2. Problem
 

@@ -1,6 +1,7 @@
 # kinlock-contracts
 
 [![CI](https://github.com/Kinlock-Org/kinlock-contracts/actions/workflows/ci.yml/badge.svg)](https://github.com/Kinlock-Org/kinlock-contracts/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Kinlock-Org/kinlock-contracts/badge)](https://scorecard.dev/viewer/?uri=github.com/Kinlock-Org/kinlock-contracts)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 The `kinlock` Soroban contract — payee registry and lock vault in one contract, modular code — plus its tests, deploy tooling, and generated TypeScript bindings.
@@ -8,6 +9,14 @@ The `kinlock` Soroban contract — payee registry and lock vault in one contract
 > **Status: functionally complete, hardening open.** All 18 entry points — `__constructor` plus 17 callable functions, all in the single `#[contractimpl]` in `contracts/kinlock/src/lib.rs` — are implemented with 107 unit tests and property tests over invariants 1–10, deployed to testnet behind a 2-of-3 multisig. Budget tests (`M1-16`), the integration suite (`M1-15`), the internal review (`M1-22`), and the external audit (`H-04`) are still open — which is exactly the gap between "testnet pilot" and "mainnet". See `ROADMAP.md`.
 
 **Try it live (testnet):** [kinlock-app.vercel.app](https://kinlock-app.vercel.app) · **Docs:** [kinlock-org.github.io](https://kinlock-org.github.io) · **Deployment:** [`DEPLOYMENTS.md`](DEPLOYMENTS.md)
+
+## See it in action
+
+A 25-second overview of the contract layer — the only two exits money can take, the rules the code can't bend, the entry points, and the test + multisig guardrails. Testnet, unaudited.
+
+<video src="media/kinlock-brag.mp4" controls width="640" poster="media/kinlock-brag-poster.jpg"></video>
+
+> If the clip doesn't play inline, download it: [media/kinlock-brag.mp4](media/kinlock-brag.mp4).
 
 ## The contract
 
@@ -48,8 +57,9 @@ Toolchain is pinned in `rust-toolchain.toml` (Rust 1.96.1, `wasm32v1-none`); `so
 ## Tests
 
 - **107 unit tests** in `contracts/kinlock/src/test/`: every entry point's success path and every failure path, each `create_lock` validation, explicit-auth assertions (`env.auths()`, not only `mock_all_auths`), boundary timestamps, TTL behavior, and an upgrade test using the real compiled WASM.
-- **Property tests** in `contracts/kinlock/tests/properties.rs`: random sequences of create, release, refund, decline, status and payout changes, time jumps, pause, allowlist and roster changes, and frozen accounts, with all ten invariants re-checked after every step.
-- `tests/budget.rs` and `tests/integration.rs` are **placeholders** (`M1-16`, `M1-15`); `soroban-budget-assert` isn't on crates.io, so `M1-30` has to source it first.
+- **Property tests** in `contracts/kinlock/tests/properties.rs`: random sequences of create, release, refund, decline, status and payout changes, time jumps, pause, allowlist and roster changes, and frozen accounts, with all ten invariants re-checked after every step (invariants 1–9 asserted directly in `check_invariants()`, invariant 10 asserted across each operation failure).
+- **Integration tests** in `contracts/kinlock/tests/integration.rs` (`M1-15`): end-to-end integration suite covering classic G-address to C-address payees, C-address callers (contract wallets), missing/unauthorized USDC trustline revert and retry, partial release followed by refund and decline remainder accounting, and allowlist removal with open locks. Detailed guide: [`docs/TESTING.md`](docs/TESTING.md).
+- `tests/budget.rs` budget tests (`M1-16`) evaluate operation metering with Soroban testutils.
 
 CI runs fmt → build → a bindings-freshness diff → clippy `-D warnings` → `cargo test --workspace`.
 
@@ -67,6 +77,25 @@ Current testnet: `CCSHDQFRYFC3AHV5NE6ULQW6X2CMG5RPANBORDXJGSUD6UKECASJQBRI`, 2-o
 ## TypeScript bindings
 
 `bindings/typescript` holds the generated `@kinlock/contract` client (currently 0.1.0). Never hand-edit it: change the contract, run `scripts/gen-bindings.sh`, commit the result — CI fails on a stale copy. To release, bump with `scripts/gen-bindings.sh <x.y.z>`, merge, then push the tag `bindings-v<x.y.z>`; the `bindings` workflow attaches a `.tgz` to that GitHub Release (workflow `GITHUB_TOKEN`, no publish secret — ADR-0026). `kinlock-sdk` consumes it from there.
+
+## Maintainers
+
+| Name | Role | GitHub | Contact |
+|---|---|---|---|
+| Adenike Ajala | Core Maintainer (Smart Contracts & Protocol) | [@abrcrmb](https://github.com/abrcrmb) | [Email](mailto:adenikeajala2018@gmail.com) |
+| Ayobami Yazar | Core Maintainer (Full-Stack & Integrations) | [@YazarAyobami](https://github.com/YazarAyobami) | [Email](mailto:Yazarayobami76@gmail.com) |
+
+## Community & Discussions
+
+- **Discussions:** [GitHub Discussions](https://github.com/Kinlock-Org/kinlock-contracts/discussions)
+- **Documentation Portal:** [kinlock-org.github.io](https://kinlock-org.github.io)
+- **Report Security Vulnerabilities:** Follow [`SECURITY.md`](SECURITY.md)
+
+## Contributors
+
+Thanks to everyone who has contributed to Kinlock!
+
+[![Contributors](https://contrib.rocks/image?repo=Kinlock-Org/kinlock-contracts)](https://github.com/Kinlock-Org/kinlock-contracts/graphs/contributors)
 
 ## Read first
 
